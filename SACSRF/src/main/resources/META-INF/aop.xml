@@ -1,0 +1,8 @@
+<aspectj>
+	<aspects>
+		<aspect name="com.flameling.SACSRF.TraceMyClasses"/>
+		<aspect name="com.flameling.SACSRF.CSRFPrevention"/>
+	</aspects>
+	<weaver options="-Xset:weaveJavaxPackages=true">
+	</weaver>
+</aspectj>
