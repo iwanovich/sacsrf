@@ -28,10 +28,11 @@ public class TokenProcessor {
 	}
 	
 	HttpServletResponse blockInvalidRequest(HttpServletRequest request, HttpServletResponse response)
-			throws IOException{
+			throws NoValidTokenException{
 		try {
 			response = process(request, response);
 		} catch (NoValidTokenException e) {
+			throw e;
 			//response.sendError(HttpServletResponse.SC_FORBIDDEN);
 		}
 		return response;

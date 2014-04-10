@@ -57,7 +57,12 @@ public aspect CSRFPrevention {
 			HttpServletRequest httpRequest = (HttpServletRequest) request;
 			HttpServletResponse httpResponse = (HttpServletResponse) response;
 			if (httpRequest.getAttribute(Constants.REGISTER_TOKEN) == null) {
-				httpResponse = tokenProcessor.blockInvalidRequest(httpRequest, httpResponse);
+				try {
+					httpResponse = tokenProcessor.blockInvalidRequest(httpRequest, httpResponse);
+				} catch (NoValidTokenException e) {
+					httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
+					return;
+				}
 				httpRequest.setAttribute(Constants.REGISTER_TOKEN,
 						Constants.REGISTER_TOKEN);
 			}
@@ -80,7 +85,12 @@ public aspect CSRFPrevention {
 			HttpServletResponse httpResponse = (HttpServletResponse) response;
 			createSessionRef(httpRequest);
 			if (httpRequest.getAttribute(Constants.REGISTER_TOKEN) == null) {
-				httpResponse = tokenProcessor.blockInvalidRequest(httpRequest, httpResponse);
+				try {
+					httpResponse = tokenProcessor.blockInvalidRequest(httpRequest, httpResponse);
+				} catch (NoValidTokenException e) {
+					httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
+					return;
+				}
 				httpRequest.setAttribute(Constants.REGISTER_TOKEN,
 						Constants.REGISTER_TOKEN);
 			}
@@ -118,7 +128,7 @@ public aspect CSRFPrevention {
 				LruCache<String> nonceCache = (LruCache<String>) session
 						.getAttribute(Constants.CSRF_NONCE_SESSION_ATTR_NAME);
 				if (nonceCache == null) {
-					new LruCache<String>(TokenProcessor.nonceCacheSize);
+					nonceCache = new LruCache<String>(TokenProcessor.nonceCacheSize);
 				}
 				session.setAttribute(Constants.CSRF_NONCE_SESSION_ATTR_NAME,
 						nonceCache);
@@ -139,6 +149,29 @@ public aspect CSRFPrevention {
 //		}
 //			System.out.println("Forward happened from/to: " + target);
 //	}
+	
+	void around(ServletRequest request, ServletResponse response) throws IOException:
+		forward(request, response) {
+		System.out.println("boe");
+		if(request instanceof HttpServletRequest && response instanceof HttpServletResponse){
+			HttpServletRequest httpRequest = (HttpServletRequest) request;
+			HttpServletResponse httpResponse = (HttpServletResponse) response;
+			createSessionRef(httpRequest);
+			if (httpRequest.getAttribute(Constants.REGISTER_TOKEN) == null) {
+				try {
+					httpResponse = tokenProcessor.blockInvalidRequest(httpRequest, httpResponse);
+				} catch (NoValidTokenException e) {
+					httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
+					return;
+				}
+				httpRequest.setAttribute(Constants.REGISTER_TOKEN,
+						Constants.REGISTER_TOKEN);
+			}
+			proceed(httpRequest, httpResponse);
+		} else {
+			proceed(request, response);
+		}
+	}
 	
 	void createSessionRef(HttpServletRequest request){
 		final HttpSession session = request.getSession();
