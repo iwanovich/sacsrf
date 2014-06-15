@@ -35,8 +35,8 @@ public class SaveHTMLPlugin implements OnNewStatePlugin {
 
 		try {
 			// query info
-			String dom = vtx.getStrippedDom();
-			dom = ctx.getBrowser().getStrippedDom();
+			//String dom = vtx.getStrippedDom(); // This method gets the dom as a single line.
+			String dom = ctx.getBrowser().getStrippedDom(); // This method returns the dom including returns.
 			String url = vtx.getUrl();
 			String outdir = ctx.getConfig().getOutputDir().getAbsolutePath();
 

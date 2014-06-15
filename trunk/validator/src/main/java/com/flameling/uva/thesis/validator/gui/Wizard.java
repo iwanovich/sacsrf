@@ -59,8 +59,8 @@ public class Wizard extends JFrame{
 		getContentPane().add(securedUrlLabel);
 	}
 	
-	private void startCrawl(IndicatorThread indicatorThread, String crawlUrl){
-		Crawler crawler = new Crawler(crawlUrl);
+	private void startCrawl(IndicatorThread indicatorThread, String crawlUrl, boolean secured){
+		Crawler crawler = new Crawler(crawlUrl, secured);
 		AssistingThread crawlThread = new CrawlThread(indicatorThread, crawler);
 		indicatorThread.start();
 		crawlThread.start();
@@ -93,7 +93,7 @@ public class Wizard extends JFrame{
 				}
 				
 			};
-			startCrawl(indicatorThread, crawlUrl);
+			startCrawl(indicatorThread, crawlUrl, false);
 		}
 	}
 	
@@ -114,7 +114,7 @@ public class Wizard extends JFrame{
 				}
 				
 			};
-			startCrawl(indicatorThread, crawlUrl);		
+			startCrawl(indicatorThread, crawlUrl, true);		
 		}
 	}
 	
