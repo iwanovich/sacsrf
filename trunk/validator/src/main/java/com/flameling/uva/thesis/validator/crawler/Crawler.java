@@ -33,7 +33,7 @@ public class Crawler {
 	
 	public void config(String url, boolean secured){
 		this.url = url;
-		this.outputFolder = OUTPUT_FOLDER + (secured ? "-secured" : "-clean");
+		this.outputFolder = OUTPUT_FOLDER + (secured ? "/secured" : "/clean");
 	}
 	
 	private CrawljaxConfigurationBuilder initConfig(){
