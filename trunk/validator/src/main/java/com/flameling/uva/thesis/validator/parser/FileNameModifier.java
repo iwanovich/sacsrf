@@ -2,9 +2,12 @@ package com.flameling.uva.thesis.validator.parser;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.commons.io.FileUtils;
 
 public class FileNameModifier {
 	
@@ -16,8 +19,32 @@ public class FileNameModifier {
 	}
 	
 	public static void main(String[] args){
-		FileNameModifier fnm = new FileNameModifier(new File("htmloutput-secured/localhost_8080/archiva"));
+		FileNameModifier fnm = new FileNameModifier(new File("htmloutput/secured/localhost_8080/archiva"));
 		fnm.printRootFiles();
+	}
+	
+	List<MetaDataEntry> createMetaData(){
+		List<MetaDataEntry> metaData = new ArrayList<MetaDataEntry>();
+		for(File file : getFiles(rootFolder, false)){
+			MetaDataEntry mde = new MetaDataEntry();
+			mde.originalFile = file;
+			mde.strippedFileName = removeTokenFromFileName(file.getName());
+			mde.newFile = new File(removeTokenFromFileName(file.getAbsolutePath()));
+			mde.originalFileData = readFile(file);
+			metaData.add(mde);
+		}
+		return metaData;
+	}
+	
+	private String readFile(File file){
+		String result = "";
+    	try {
+			result = FileUtils.readFileToString(file);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return result;
 	}
 	
 	private void printRootFiles(){
