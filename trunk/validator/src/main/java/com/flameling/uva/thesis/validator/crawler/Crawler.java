@@ -1,6 +1,9 @@
 package com.flameling.uva.thesis.validator.crawler;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
+
+import javax.swing.JFrame;
 
 import com.crawljax.browser.EmbeddedBrowser.BrowserType;
 import com.crawljax.core.CrawljaxRunner;
@@ -21,9 +24,11 @@ public class Crawler {
 	private static final String OUTPUT_FOLDER = "htmloutput";
 	private String url;
 	private String outputFolder;
+	JFrame frame;
 	
-	public Crawler(String url, boolean secured){
+	public Crawler(String url, boolean secured, JFrame frame){
 		config(url, secured);
+		this.frame = frame;
 	}
 	
 	public void run(){
@@ -54,7 +59,7 @@ public class Crawler {
 		builder.crawlRules().clickOnce(false);
 		
 		//builder.addPlugin(new SamplePlugin());
-		builder.addPlugin(new SaveHTMLPlugin());
+		builder.addPlugin(new SaveHTMLPlugin(frame));
 		//builder.addPlugin(new CrawlOverview());
 		
 		builder.setUnlimitedCrawlDepth();
