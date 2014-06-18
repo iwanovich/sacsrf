@@ -5,9 +5,13 @@ package com.flameling.uva.thesis.validator.crawler;
 import java.io.File;
 import java.io.FileWriter;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
 import com.crawljax.core.CrawlerContext;
 import com.crawljax.core.plugin.OnNewStatePlugin;
 import com.crawljax.core.state.StateVertex;
+import com.flameling.uva.thesis.validator.Util;
 import com.flameling.uva.thesis.validator.crawler.common.MD5;
 import com.flameling.uva.thesis.validator.crawler.common.URL2File;
 
@@ -30,6 +34,12 @@ import com.flameling.uva.thesis.validator.crawler.common.URL2File;
  * 
  */
 public class SaveHTMLPlugin implements OnNewStatePlugin {
+	
+	JFrame frame;
+	
+	public SaveHTMLPlugin(JFrame frame){
+		this.frame = frame;
+	}
 
 	public void onNewState(CrawlerContext ctx, StateVertex vtx) {
 
@@ -41,7 +51,7 @@ public class SaveHTMLPlugin implements OnNewStatePlugin {
 			String outdir = ctx.getConfig().getOutputDir().getAbsolutePath();
 
 			// build output
-			URL2File u2f = new URL2File(url, true);
+			URL2File u2f = new URL2File(Util.stripToken(url), true);
 			String dir = u2f.getDirectory();
 			String file = u2f.getFile();
 			String fn = outdir + "/" + dir + "/" + file;
@@ -59,11 +69,13 @@ public class SaveHTMLPlugin implements OnNewStatePlugin {
 					same = true;
 				} else {
 					counter++;
-					newFilename = fn.replaceAll("\\(.html?)$", "-" + counter
-							+ "$1");
-					exists = new File(newFilename).exists();
+					newFilename = newFilename.substring(0, newFilename.length()-5) + "-" + counter + ".html";
+					File newFile = new File(newFilename);
+					exists = newFile.exists();
 				}
 			}
+			
+			
 
 			if (!same) {
 				new File(outdir + "/" + dir).mkdirs(); // create directory

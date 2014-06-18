@@ -12,20 +12,20 @@ import org.apache.commons.io.FileUtils;
 public class FileNameModifier {
 	
 	List<File> files;
-	File rootFolder;
+//	File rootFolder;
 	
-	FileNameModifier(File rootFolder){
-		this.rootFolder = rootFolder.getAbsoluteFile();
-	}
+//	FileNameModifier(File rootFolder){
+//		this.rootFolder = rootFolder.getAbsoluteFile();
+//	}
+//	
+//	public static void main(String[] args){
+//		FileNameModifier fnm = new FileNameModifier(new File("htmloutput/secured/localhost_8080/archiva"));
+//		fnm.printRootFiles();
+//	}
 	
-	public static void main(String[] args){
-		FileNameModifier fnm = new FileNameModifier(new File("htmloutput/secured/localhost_8080/archiva"));
-		fnm.printRootFiles();
-	}
-	
-	List<MetaDataEntry> createMetaData(){
+	List<MetaDataEntry> createMetaData(File folder){
 		List<MetaDataEntry> metaData = new ArrayList<MetaDataEntry>();
-		for(File file : getFiles(rootFolder, false)){
+		for(File file : getFiles(folder, false)){
 			MetaDataEntry mde = new MetaDataEntry();
 			mde.originalFile = file;
 			mde.strippedFileName = removeTokenFromFileName(file.getName());
@@ -47,11 +47,11 @@ public class FileNameModifier {
     	return result;
 	}
 	
-	private void printRootFiles(){
-		for(File file : getFiles(rootFolder, false)){
-			System.out.println(removeTokenFromFileName(file.getName()));
-		}
-	}
+//	private void printRootFiles(){
+//		for(File file : getFiles(rootFolder, false)){
+//			System.out.println(removeTokenFromFileName(file.getName()));
+//		}
+//	}
 	
 	private String removeTokenFromFileName(String fileName){
 		String tokenKey = ("com.flameling.SACSRF.CSRF_NONCE");
