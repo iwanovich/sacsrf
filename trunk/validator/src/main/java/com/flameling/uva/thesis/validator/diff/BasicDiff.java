@@ -22,7 +22,6 @@ public class BasicDiff {
     	FileWriter out = null;
     	try {
     		diffOut.getParentFile().mkdirs();
-    		//diffOut.createNewFile();
 			out = new FileWriter(diffOut);
 			out.write(prettyDiff);
 			out.close();
