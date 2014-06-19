@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
@@ -24,26 +25,19 @@ public class Parser {
 		parser.parse();
 	}
 	
-	private void parseClean(File folder){
-		List<File> cleanFiles = Util.getFiles(folder, false);
-		for(File file : cleanFiles){
-			try {
-				String parsedDOM = parseDOM(FileUtils.readFileToString(file));
-				FileUtils.write(file, parsedDOM);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		List<File> cleanDirs = Util.getDirectories(folder, false);
-		for(File dir : cleanDirs){
-			parseClean(dir);
+	private void parse(){
+		parseFilesRecursively(cleanFolder, false);
+		parseFilesRecursively(securedFolder, true);
+		List<File> cleanFiles = Util.getFiles(cleanFolder, true);
+		List<File> securedFiles = Util.getFiles(securedFolder, true);
+		
+		if(cleanFiles.size() != securedFiles.size()){
+			System.out.println("Alert! non-secured version has "
+					+ cleanFiles.size() + " captured files. The secured verions has "
+					+ securedFiles.size() + " captured files");
 		}
 		
-	}
-	
-	private void parse(){
-		parseClean(cleanFolder);
+		diffEqualFiles(cleanFiles, securedFiles);
 		
 		//diff(metaData);
 		// do diff for multiple state files
@@ -56,11 +50,56 @@ public class Parser {
 		
 	}
 	
-	private void diff(File cleanFile, File securedFile) throws IOException{
-		String cleanData = FileUtils.readFileToString(cleanFile);
-		String securedData = FileUtils.readFileToString(securedFile);
-		File diffFile = createDiffFile(cleanFile);
-		BasicDiff.diffLineMode(cleanData, securedData, diffFile); // writing the diff to disk
+	private void parseFilesRecursively(File folder, boolean removeToken){
+		List<File> cleanFiles = Util.getFiles(folder, false);
+		for(File file : cleanFiles){
+			try {
+				String parsedDOM;
+				if(removeToken){
+					parsedDOM = removeTokenFromDOM(FileUtils.readFileToString(file));
+				} else{
+					parsedDOM = parseDOM(FileUtils.readFileToString(file));
+				}
+				FileUtils.write(file, parsedDOM);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		List<File> cleanDirs = Util.getDirectories(folder, false);
+		for(File dir : cleanDirs){
+			parseFilesRecursively(dir, removeToken);
+		}
+		
+	}
+	
+	private void diffEqualFiles(List<File> cleanFiles, List<File> securedFiles){
+		List<Vector<File>> tuples = new ArrayList<Vector<File>>();
+		for(File cleanFile : cleanFiles){
+			for(File securedFile : securedFiles){
+				if (cleanFile.getAbsolutePath().substring((int)cleanFolder.length())
+						.equals(securedFile.getAbsolutePath().substring((int)securedFolder.length()))){
+					Vector<File> tuple = new Vector<File>();
+					tuple.add(cleanFile);
+					tuple.add(securedFile);
+					tuples.add(tuple);
+				}
+			}
+		}
+		for(Vector<File> tuple : tuples){
+			diff(tuple.get(0), tuple.get(1));
+		}
+	}
+	
+	private void diff(File cleanFile, File securedFile){
+		try {
+			String cleanData = FileUtils.readFileToString(cleanFile);
+			String securedData = FileUtils.readFileToString(securedFile);
+			File diffFile = createDiffFile(cleanFile);
+			BasicDiff.diffLineMode(cleanData, securedData, diffFile); // writing the diff to disk
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private File createDiffFile(File originalFile){
