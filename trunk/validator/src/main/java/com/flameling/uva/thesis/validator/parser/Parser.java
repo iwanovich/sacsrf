@@ -9,6 +9,7 @@ import java.util.Vector;
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.flameling.uva.thesis.validator.Constants;
@@ -77,8 +78,9 @@ public class Parser {
 		List<Vector<File>> tuples = new ArrayList<Vector<File>>();
 		for(File cleanFile : cleanFiles){
 			for(File securedFile : securedFiles){
-				if (cleanFile.getAbsolutePath().substring((int)cleanFolder.length())
-						.equals(securedFile.getAbsolutePath().substring((int)securedFolder.length()))){
+				String relativeCleanPath = cleanFile.getAbsolutePath().substring((int)cleanFolder.getAbsolutePath().length());
+				String relativeSecuredPath = securedFile.getAbsolutePath().substring((int)securedFolder.getAbsolutePath().length());
+				if (relativeCleanPath.equals(relativeSecuredPath)){
 					Vector<File> tuple = new Vector<File>();
 					tuple.add(cleanFile);
 					tuple.add(securedFile);
@@ -111,15 +113,35 @@ public class Parser {
 	}
 	
 	private String removeTokenFromDOM(String dom){
-		Document doc = Jsoup.parse(dom);
+		Document doc = parseStrippedDOM(dom);
 		Elements els = doc.select("*");
 		els.traverse(new SrcVisitor());
 		return doc.outerHtml();
 	}
 	
-	private String parseDOM(String dom){
+	private Document parseStrippedDOM(String dom){
 		Document doc = Jsoup.parse(dom);
+		doc.getElementsByTag("head").first().getElementsByAttributeValue("src", "/archiva/struts/dojo/src/browser_debug.js").remove();
+		doc.getElementsByTag("head").first().getElementsByAttributeValue("src", "/archiva/struts/dojo/src/debug.js").remove();
+		doc.getElementsByTag("head").first().getElementsByAttributeValue("href", "/archiva/struts/xhtml/styles.css").remove();
+		doc.getElementsByTag("head").first().getElementsByAttributeValue("src", "/archiva/struts/dojo/dojo.js").remove();
+		doc.getElementsByTag("head").first().getElementsByAttributeValue("src", "/archiva/struts/simple/dojoRequire.js").remove();
+		doc.getElementsByTag("body").first().getElementById("topSearchBox").getElementsByAttributeValue("src", "/archiva/struts/xhtml/validation.js").remove();
+		doc.getElementsByTag("body").first().getElementsByAttributeValue("href", "http://www.apache.org/").remove();
+		doc.getElementsByTag("body").first().getElementsByAttributeValue("href", "http://archiva.apache.org/").remove();
+		Elements elements = doc.getElementsByTag("head").first().getElementsByTag("script");
+		for(Element element : elements){
+			if(!element.dataNodes().isEmpty() && element.dataNodes().get(0).attr("data").contains("dojo.hostenv._global_omit_module_check = false;")){
+				element.remove();
+			}
+		}
+		return doc;
+	}
+	
+	private String parseDOM(String dom){
+		Document doc = parseStrippedDOM(dom);
 		return doc.outerHtml();
 	}
+	
 
 }
