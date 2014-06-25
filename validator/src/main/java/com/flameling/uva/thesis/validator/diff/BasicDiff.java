@@ -7,6 +7,7 @@ import java.util.LinkedList;
 
 import com.flameling.uva.thesis.validator.diff.DiffMatchPatch.Diff;
 import com.flameling.uva.thesis.validator.diff.DiffMatchPatch.LinesToCharsResult;
+import com.flameling.uva.thesis.validator.diff.DiffMatchPatch.Operation;
 
 
 public class BasicDiff {
@@ -18,6 +19,10 @@ public class BasicDiff {
     	dmp.diff_charsToLines(diffs, ltcr.lineArray);
     	dmp.diff_cleanupSemantic(diffs);
     	String prettyDiff = dmp.diff_prettyHtml(diffs);
+    	
+    	if(diffs.isEmpty() || (diffs.size() == 1 && diffs.getFirst().operation.equals(Operation.EQUAL))){
+    		return;
+    	}
     	
     	FileWriter out = null;
     	try {
