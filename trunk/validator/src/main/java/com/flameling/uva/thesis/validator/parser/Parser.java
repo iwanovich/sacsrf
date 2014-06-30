@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Vector;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.DataNode;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -57,6 +59,7 @@ public class Parser {
 			try {
 				String parsedDOM;
 				if(removeToken){
+					System.out.println(file.getName());
 					parsedDOM = removeTokenFromDOM(FileUtils.readFileToString(file));
 				} else{
 					parsedDOM = parseDOM(FileUtils.readFileToString(file));
@@ -114,9 +117,37 @@ public class Parser {
 	
 	private String removeTokenFromDOM(String dom){
 		Document doc = parseStrippedDOM(dom);
+		removeTokenFromHTML(doc, true);
+		parseJS(doc, true);
+		return doc.outerHtml();
+	}
+	
+	private void removeTokenFromHTML(Document doc, boolean tokenRemoval){
 		Elements els = doc.select("*");
 		els.traverse(new SrcVisitor());
-		return doc.outerHtml();
+	}
+	
+	private void parseJS(Document doc, boolean tokenRemoval){
+		JSParser jsParser = new JSParser();
+		Elements scripts = doc.getElementsByTag("script");
+		for(Element script : scripts){
+			if (script.hasAttr("type") && script.attr("type").contains("javascript")
+					&& !script.dataNodes().isEmpty()){
+				DataNode data = script.dataNodes().get(0);
+				String actualData = data.attr("data");
+				// convert "&lt" to "<" and such.
+				// This is needed because the ChromeDriver does character escaping.
+				actualData = StringEscapeUtils.unescapeHtml4(actualData);
+				actualData = removeHTMLComments(actualData);
+				String parsedData;
+				if(tokenRemoval){
+					parsedData = jsParser.removeTokens(actualData);
+				} else{
+					parsedData = jsParser.cleanParse(actualData);
+				}
+				data.attr("data", parsedData);
+			}
+		}
 	}
 	
 	private Document parseStrippedDOM(String dom){
@@ -138,8 +169,13 @@ public class Parser {
 		return doc;
 	}
 	
+	private String removeHTMLComments(String src){
+		return src.replaceAll("<!--[\\s\\S]*?-->", "");
+	}
+	
 	private String parseDOM(String dom){
 		Document doc = parseStrippedDOM(dom);
+		parseJS(doc, false);
 		return doc.outerHtml();
 	}
 	
