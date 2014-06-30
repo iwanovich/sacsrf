@@ -39,27 +39,65 @@ public class JSParser {
 			+"  }"
 			+"//--&gt;";
 		
+		String js2 = "function handleChecksum()"
+        +"{"
+        +"  if ( f.value )"
+        +"  {"
+        +"     var f = document.getElementById('filetypeForm');"
+        +"    if ( f.value.indexOf(\"/\") &gt;= 0 || f.value.indexOf(\"\\\") &gt;= 0)"
+        +"    {"
+        +"      var s = document.ChecksumApplet.generateMd5( f.value );"
+        +"      // If there is a space, it's an error message, not a checksum"
+        +"      if ( s.indexOf(\" \") &gt;= 0 )"
+        +"      {"
+        +"        alert(s);"
+        +"      }"
+        +"      else"
+        +"      {"
+        +"        document.checksumSearch.q.value = s;"
+        +"      }"
+        +"    }"
+        +"    else if ( f.files[0].getAsBinary )"
+        +"    {"
+        +"      document.checksumSearch.q.value = hex_md5(f.files[0].getAsBinary());"
+        +"    }"
+        +"    else"
+        +"    {"
+        +"        alert('This browser is not supported');"
+        +"    }"
+        +"  }"
+        +"}";
+		
 		JSParser parser = new JSParser();
-		parser.something(js);
+		String output = parser.removeTokens(js2);
+		System.out.println(output);
 	}
 	
-	private void something(String src){
+	public String removeTokens(String src){
+		System.out.println(src);
 		AstRoot ast = parse(src);
 		NodeVisitor visitor = new JSTokenRemover();
 		ast.visit(visitor);
-		System.out.println(ast.toSource());
+		String result = ast.toSource();
+		return result;
 	}
 	
-	private static AstRoot parse(String src){
+	public String cleanParse(String src){
+		System.out.println(src);
+		AstRoot ast = parse(src);
+		String result = ast.toSource();
+		return result;
+	}
+	
+	private AstRoot parse(String src){
 		return parse(src, 0);
 	}
 	
-	private static AstRoot parse(String src, int retries){
+	private AstRoot parse(String src, int retries){
 		AstRoot ast = null;
 		try {
 			ast = parseRoot(src, 0);
 			String output = ast.toSource();
-			System.out.println(output);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -72,6 +110,9 @@ public class JSParser {
 				String regex = "\\Q" + e.lineSource() + "\\E";
 				src = src.replaceFirst(regex, "");
 				ast = parse(src, retries++);
+			} else{
+				System.out.println(e.lineSource());
+				throw e;
 			}
 		}
 		return ast;
@@ -79,7 +120,7 @@ public class JSParser {
 	
 	// TODO bronvermelding, anders kan het gezien worden als plagiaat.
 	// Ram Kulkarni, http://ramkulkarni.com/blog/understanding-ast-created-by-mozilla-rhino-parser/
-	private static AstRoot parseRoot(String src, int startLineNum)
+	private AstRoot parseRoot(String src, int startLineNum)
 			throws IOException {
 
 			CompilerEnvirons env = new CompilerEnvirons();
