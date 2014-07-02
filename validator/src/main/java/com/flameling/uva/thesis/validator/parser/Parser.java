@@ -22,6 +22,8 @@ public class Parser {
 	
 	private File cleanFolder = new File(Constants.OUTPUT_FOLDER.getAbsolutePath() + "/" + Constants.CLEAN_FOLDER_NAME);
 	private File securedFolder = new File(Constants.OUTPUT_FOLDER.getAbsolutePath() + "/" + Constants.SECURED_FOLDER_NAME);
+	private String unsecuredUrl = "http://localhost:8080/archiva/";
+	private String securedUrl = "http://localhost:8080/archiva/";
 	
 	public static void main(String[] args){
 		Parser parser = new Parser();
@@ -29,7 +31,9 @@ public class Parser {
 	}
 	
 	private void parse(){
+		Util.setUrlOracle(unsecuredUrl);
 		parseFilesRecursively(cleanFolder, false);
+		Util.setUrlOracle(securedUrl);
 		parseFilesRecursively(securedFolder, true);
 		List<File> cleanFiles = Util.getFiles(cleanFolder, true);
 		List<File> securedFiles = Util.getFiles(securedFolder, true);
@@ -158,8 +162,8 @@ public class Parser {
 		doc.getElementsByTag("head").first().getElementsByAttributeValue("src", "/archiva/struts/dojo/dojo.js").remove();
 		doc.getElementsByTag("head").first().getElementsByAttributeValue("src", "/archiva/struts/simple/dojoRequire.js").remove();
 		doc.getElementsByTag("body").first().getElementById("topSearchBox").getElementsByAttributeValue("src", "/archiva/struts/xhtml/validation.js").remove();
-		doc.getElementsByTag("body").first().getElementsByAttributeValue("href", "http://www.apache.org/").remove();
-		doc.getElementsByTag("body").first().getElementsByAttributeValue("href", "http://archiva.apache.org/").remove();
+		//doc.getElementsByTag("body").first().getElementsByAttributeValue("href", "http://www.apache.org/").remove();
+		//doc.getElementsByTag("body").first().getElementsByAttributeValue("href", "http://archiva.apache.org/").remove();
 		Elements elements = doc.getElementsByTag("head").first().getElementsByTag("script");
 		for(Element element : elements){
 			if(!element.dataNodes().isEmpty() && element.dataNodes().get(0).attr("data").contains("dojo.hostenv._global_omit_module_check = false;")){
