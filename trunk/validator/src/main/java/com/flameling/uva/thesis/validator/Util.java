@@ -2,6 +2,8 @@ package com.flameling.uva.thesis.validator;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +16,17 @@ public class Util {
 	private static final String csrfTokenKey = Constants.TOKEN_KEY;
 	private static final String queryPathDelimiter = "?";
 	private static final String queryPathParameterDelimiter = "&";
+	// be aware that one single changing urlOracle will give invalid results with concurrent usage!
+	private static String urlOracle;
 	
+	public static String getUrlOracle() {
+		return urlOracle;
+	}
+
+	public static void setUrlOracle(String urlOracle) {
+		Util.urlOracle = urlOracle;
+	}
+
 	public static String stripToken(String url){
 		String result = url;
 		String csrfToken = "";
@@ -86,6 +98,30 @@ public class Util {
 			}
 		});
 		return new ArrayList<File>(Arrays.asList(fileArray));
+	}
+	
+	public static boolean isOtherDomain(String urlString){
+		return isOtherDomain(urlString, urlOracle);
+	}
+	
+	private static boolean isOtherDomain(String urlString, String oracleString){
+		boolean result = false;
+		URL url = null;
+		URL oracle = null;
+		try {
+			url = new URL(urlString);
+			oracle = new URL(oracleString);
+		} catch (MalformedURLException e) {
+			// A malformed leaves only the option left for a relative url
+			// (or a true malformed url :p), so it is definitely not another
+			// domain.
+			return result;
+		}
+		String urlHostname = url.getHost() + ":" + url.getPort();
+		String oracleHostname = oracle.getHost() + ":" + oracle.getPort();
+		result = !urlHostname.equals(oracleHostname);
+		
+		return result;
 	}
 	
 }

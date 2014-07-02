@@ -20,6 +20,8 @@ public class Wizard extends JFrame{
 	JTextField urlField;
 	JButton nextButton;
 	private JTextField securedUrlField;
+	private String unsecuredUrl;
+	private String securedUrl;
 	
 	public Wizard(){
 		getContentPane().setLayout(null);
@@ -93,6 +95,7 @@ public class Wizard extends JFrame{
 				}
 				
 			};
+			unsecuredUrl = crawlUrl;
 			startCrawl(indicatorThread, crawlUrl, false);
 		}
 	}
@@ -114,6 +117,7 @@ public class Wizard extends JFrame{
 				}
 				
 			};
+			securedUrl = crawlUrl;
 			startCrawl(indicatorThread, crawlUrl, true);		
 		}
 	}

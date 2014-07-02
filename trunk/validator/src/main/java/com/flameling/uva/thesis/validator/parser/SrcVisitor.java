@@ -35,7 +35,8 @@ public class SrcVisitor implements NodeVisitor {
 				node.attr(attr, Util.stripToken(srcValue));
 				modifiedNodes.add(node);
 			}
-			else if(!modifiedNodes.contains(node) && !srcValue.startsWith("#")){
+			else if(!modifiedNodes.contains(node) && !srcValue.startsWith("#")
+					&& !Util.isOtherDomain(srcValue)){
 			node.attr(attr, srcValue + "[[MISSING_TOKEN!!]]");
 			modifiedNodes.add(node);
 			}
