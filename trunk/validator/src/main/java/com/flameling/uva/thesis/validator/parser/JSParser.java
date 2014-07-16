@@ -74,7 +74,6 @@ public class JSParser {
 	}
 	
 	public String removeTokens(String src){
-		System.out.println(src);
 		AstRoot ast = parse(src);
 		NodeVisitor visitor = new JSTokenRemover();
 		ast.visit(visitor);
@@ -83,7 +82,6 @@ public class JSParser {
 	}
 	
 	public String cleanParse(String src){
-		System.out.println(src);
 		AstRoot ast = parse(src);
 		String result = ast.toSource();
 		return result;
@@ -97,7 +95,6 @@ public class JSParser {
 		AstRoot ast = null;
 		try {
 			ast = parseRoot(src, 0);
-			String output = ast.toSource();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

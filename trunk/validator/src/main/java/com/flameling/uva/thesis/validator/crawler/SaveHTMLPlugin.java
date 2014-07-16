@@ -11,6 +11,7 @@ import javax.swing.JOptionPane;
 import com.crawljax.core.CrawlerContext;
 import com.crawljax.core.plugin.OnNewStatePlugin;
 import com.crawljax.core.state.StateVertex;
+import com.flameling.uva.thesis.validator.Config;
 import com.flameling.uva.thesis.validator.Util;
 import com.flameling.uva.thesis.validator.crawler.common.MD5;
 import com.flameling.uva.thesis.validator.crawler.common.URL2File;
@@ -35,10 +36,8 @@ import com.flameling.uva.thesis.validator.crawler.common.URL2File;
  */
 public class SaveHTMLPlugin implements OnNewStatePlugin {
 	
-	JFrame frame;
-	
-	public SaveHTMLPlugin(JFrame frame){
-		this.frame = frame;
+	public SaveHTMLPlugin(){
+		
 	}
 
 	public void onNewState(CrawlerContext ctx, StateVertex vtx) {
@@ -51,7 +50,7 @@ public class SaveHTMLPlugin implements OnNewStatePlugin {
 			String outdir = ctx.getConfig().getOutputDir().getAbsolutePath();
 
 			// build output
-			URL2File u2f = new URL2File(Util.stripToken(url), true);
+			URL2File u2f = new URL2File(Config.getInstance().getSecurityMeasures().cleanUrl(url), true);
 			String dir = u2f.getDirectory();
 			String file = u2f.getFile();
 			String fn = outdir + "/" + dir + "/" + file;

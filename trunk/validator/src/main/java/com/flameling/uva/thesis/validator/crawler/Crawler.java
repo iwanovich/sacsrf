@@ -18,54 +18,50 @@ import com.crawljax.oraclecomparator.OracleComparator;
 import com.crawljax.oraclecomparator.comparators.PlainStructureComparator;
 import com.crawljax.oraclecomparator.comparators.XPathExpressionComparator;
 import com.crawljax.plugins.crawloverview.CrawlOverview;
+import com.flameling.uva.thesis.validator.Config;
+import com.flameling.uva.thesis.validator.TestApp;
+import com.flameling.uva.thesis.validator.TokenSecurity;
 
 public class Crawler {
 	
 	private static final String OUTPUT_FOLDER = "htmloutput";
 	private String url;
-	private String outputFolder;
-	JFrame frame;
+	boolean secured;
 	
-	public Crawler(String url, boolean secured, JFrame frame){
-		config(url, secured);
-		this.frame = frame;
+	public Crawler(String url, boolean secured){
+		this.url = url;
+		this.secured = secured;
 	}
 	
 	public void run(){
-		CrawljaxRunner crawljax = new CrawljaxRunner(initConfig().build());
+		CrawljaxRunner crawljax = new CrawljaxRunner(initArchivaBuilder(url, secured).build());
 		crawljax.call();
 	}
 	
-	public void config(String url, boolean secured){
-		this.url = url;
-		this.outputFolder = OUTPUT_FOLDER + (secured ? "/secured" : "/clean");
+	private CrawljaxConfigurationBuilder initArchivaBuilder(String url, boolean secured){
+		Config.getInstance().setTestApp(TestApp.ARCHIVA);
+		Config.getInstance().getSecurityMeasures().add(new TokenSecurity());
+		CrawljaxConfigurationBuilder builder = initGeneralBuilder(url, secured, "archiva");
+		builder.crawlRules().setInputSpec(newArchivaSpec());
+		builder.crawlRules().insertRandomDataInInputForms(false);
+		builder.crawlRules().click("a");
+		builder.crawlRules().dontClick("a").withText("Logout");
+		builder.crawlRules().click("input").withAttribute("id", "loginForm__login").withAttribute("value", "Login");
+		return builder;
 	}
 	
-	private CrawljaxConfigurationBuilder initConfig(){
+	private CrawljaxConfigurationBuilder initGeneralBuilder(String url, boolean secured, String folder){
+		String outputFolder = Config.getInstance().getOutputFolder() + (secured ? "/secured" : "/clean");
 		CrawljaxConfigurationBuilder builder = CrawljaxConfiguration.builderFor(url);
-		builder.setBrowserConfig(new BrowserConfiguration(BrowserType.CHROME, 1, new ChromeProvider()));
-		
-		builder.crawlRules().setInputSpec(newArchivaSpec());
-		
-		builder.crawlRules().insertRandomDataInInputForms(false);
 		builder.setOutputDirectory(new File(outputFolder));
-
-		builder.crawlRules().click("a");
-		//builder.crawlRules().click("button");
-		builder.crawlRules().dontClick("a").withText("Logout");
-		builder.crawlRules().clickOnce(true).click("input").withAttribute("id", "loginForm__login").withAttribute("value", "Login");
+		builder.setBrowserConfig(new BrowserConfiguration(BrowserType.CHROME, 1, new ChromeProvider()));
 		OracleComparator oc = new OracleComparator("something", new PlainStructureComparator());
 		builder.crawlRules().addOracleComparator(oc);
+		builder.addPlugin(new SaveHTMLPlugin());
 		builder.crawlRules().clickOnce(false);
-		
-		//builder.addPlugin(new SamplePlugin());
-		builder.addPlugin(new SaveHTMLPlugin(frame));
-		//builder.addPlugin(new CrawlOverview());
-		
 		builder.setUnlimitedCrawlDepth();
 		builder.setUnlimitedRuntime();
 		builder.setUnlimitedStates();
-		
 		return builder;
 	}
 	
