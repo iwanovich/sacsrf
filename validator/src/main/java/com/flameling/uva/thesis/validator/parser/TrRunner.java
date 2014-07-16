@@ -22,7 +22,7 @@ public class TrRunner {
 			dirtyWriter.close();
 			
 			Elements els = doc.select("*");
-			els.traverse(new SrcVisitor());
+			els.traverse(new TokenURLCleaner());
 			//el.attr("href", "Ik ben Iwan :)");
 			
 			System.out.println(doc.outerHtml());

@@ -14,69 +14,64 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.flameling.uva.thesis.validator.Config;
 import com.flameling.uva.thesis.validator.Constants;
+import com.flameling.uva.thesis.validator.NoSecurity;
+import com.flameling.uva.thesis.validator.TestApp;
+import com.flameling.uva.thesis.validator.TokenSecurity;
 import com.flameling.uva.thesis.validator.Util;
 import com.flameling.uva.thesis.validator.diff.BasicDiff;
 
 public class Parser {
 	
-	private File cleanFolder = new File(Constants.OUTPUT_FOLDER.getAbsolutePath() + "/" + Constants.CLEAN_FOLDER_NAME);
-	private File securedFolder = new File(Constants.OUTPUT_FOLDER.getAbsolutePath() + "/" + Constants.SECURED_FOLDER_NAME);
+	private File cleanFolder = new File(Config.getInstance().getOutputFolder().getAbsolutePath() + "/" + Constants.CLEAN_FOLDER_NAME);
+	private File securedFolder = new File(Config.getInstance().getOutputFolder().getAbsolutePath() + "/" + Constants.SECURED_FOLDER_NAME);
 	private String unsecuredUrl = "http://localhost:8080/archiva/";
 	private String securedUrl = "http://localhost:8080/archiva/";
 	
 	public static void main(String[] args){
+		Config.getInstance().setTestApp(TestApp.ARCHIVA);
 		Parser parser = new Parser();
 		parser.parse();
 	}
 	
 	private void parse(){
 		Util.setUrlOracle(unsecuredUrl);
-		parseFilesRecursively(cleanFolder, false);
+		Config.getInstance().getSecurityMeasures().add(new NoSecurity());
+		parseFilesRecursively(cleanFolder);
 		Util.setUrlOracle(securedUrl);
-		parseFilesRecursively(securedFolder, true);
+		Config.getInstance().getSecurityMeasures().add(new TokenSecurity());
+		parseFilesRecursively(securedFolder);
 		List<File> cleanFiles = Util.getFiles(cleanFolder, true);
 		List<File> securedFiles = Util.getFiles(securedFolder, true);
+		checkFileCount(cleanFiles, securedFiles);
+		diffEqualFiles(cleanFiles, securedFiles);
 		
+	}
+	
+	private void checkFileCount(List<File> cleanFiles, List<File> securedFiles){
 		if(cleanFiles.size() != securedFiles.size()){
 			System.out.println("Alert! non-secured version has "
 					+ cleanFiles.size() + " captured files. The secured verions has "
 					+ securedFiles.size() + " captured files");
 		}
-		
-		diffEqualFiles(cleanFiles, securedFiles);
-		
-		//diff(metaData);
-		// do diff for multiple state files
-		// perist diff file to disk
-		// persist state files to disk
-		
-		// do diff for matching filenames
-		// if applicable, dump diff to disk
-		// report on filename mismatches
-		
 	}
 	
-	private void parseFilesRecursively(File folder, boolean removeToken){
-		List<File> cleanFiles = Util.getFiles(folder, false);
-		for(File file : cleanFiles){
+	private void parseFilesRecursively(File folder){
+		List<File> files = Util.getFiles(folder, false);
+		for(File file : files){
 			try {
-				String parsedDOM;
-				if(removeToken){
-					System.out.println(file.getName());
-					parsedDOM = removeTokenFromDOM(FileUtils.readFileToString(file));
-				} else{
-					parsedDOM = parseDOM(FileUtils.readFileToString(file));
-				}
+				String source = FileUtils.readFileToString(file);
+				String parsedDOM = parseDOM(source);
 				FileUtils.write(file, parsedDOM);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		List<File> cleanDirs = Util.getDirectories(folder, false);
-		for(File dir : cleanDirs){
-			parseFilesRecursively(dir, removeToken);
+		List<File> dirs = Util.getDirectories(folder, false);
+		for(File dir : dirs){
+			parseFilesRecursively(dir);
 		}
 		
 	}
@@ -113,26 +108,13 @@ public class Parser {
 	
 	private File createDiffFile(File originalFile){
 		String path = originalFile.getParent();
-		String subdir = path.substring(Constants.OUTPUT_FOLDER.getAbsolutePath().length());
-		String diffDir = Constants.OUTPUT_FOLDER.getAbsolutePath() + "/diff" + subdir;
+		String subdir = path.substring(Config.getInstance().getOutputFolder().getAbsolutePath().length());
+		String diffDir = Config.getInstance().getOutputFolder().getAbsolutePath() + "/diff" + subdir;
 		File diffFile = new File(diffDir+"/"+originalFile.getName());
 		return diffFile;
 	}
 	
-	private String removeTokenFromDOM(String dom){
-		Document doc = parseStrippedDOM(dom);
-		removeTokenFromHTML(doc, true);
-		parseJS(doc, true);
-		return doc.outerHtml();
-	}
-	
-	private void removeTokenFromHTML(Document doc, boolean tokenRemoval){
-		Elements els = doc.select("*");
-		els.traverse(new SrcVisitor());
-	}
-	
-	private void parseJS(Document doc, boolean tokenRemoval){
-		JSParser jsParser = new JSParser();
+	private void parseJS(Document doc){
 		Elements scripts = doc.getElementsByTag("script");
 		for(Element script : scripts){
 			if (script.hasAttr("type") && script.attr("type").contains("javascript")
@@ -143,12 +125,7 @@ public class Parser {
 				// This is needed because the ChromeDriver does character escaping.
 				actualData = StringEscapeUtils.unescapeHtml4(actualData);
 				actualData = removeHTMLComments(actualData);
-				String parsedData;
-				if(tokenRemoval){
-					parsedData = jsParser.removeTokens(actualData);
-				} else{
-					parsedData = jsParser.cleanParse(actualData);
-				}
+				String parsedData = Config.getInstance().getSecurityMeasures().parseJSData(actualData);
 				data.attr("data", parsedData);
 			}
 		}
@@ -179,7 +156,8 @@ public class Parser {
 	
 	private String parseDOM(String dom){
 		Document doc = parseStrippedDOM(dom);
-		parseJS(doc, false);
+		Config.getInstance().getSecurityMeasures().parseDOM(doc);
+		parseJS(doc);
 		return doc.outerHtml();
 	}
 	

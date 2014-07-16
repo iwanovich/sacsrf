@@ -9,12 +9,12 @@ import org.jsoup.select.NodeVisitor;
 import com.flameling.uva.thesis.validator.Constants;
 import com.flameling.uva.thesis.validator.Util;
 
-public class SrcVisitor implements NodeVisitor {
+public class TokenURLCleaner implements NodeVisitor {
 	
 	private static final String csrfTokenKey = Constants.TOKEN_KEY;
 	private Set<Node> modifiedNodes = new HashSet<Node>();
 
-	public SrcVisitor() {
+	public TokenURLCleaner() {
 		// TODO Auto-generated constructor stub
 	}
 

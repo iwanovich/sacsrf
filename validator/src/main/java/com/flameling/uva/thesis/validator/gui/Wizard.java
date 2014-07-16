@@ -62,7 +62,7 @@ public class Wizard extends JFrame{
 	}
 	
 	private void startCrawl(IndicatorThread indicatorThread, String crawlUrl, boolean secured){
-		Crawler crawler = new Crawler(crawlUrl, secured, this);
+		Crawler crawler = new Crawler(crawlUrl, secured);
 		AssistingThread crawlThread = new CrawlThread(indicatorThread, crawler);
 		indicatorThread.start();
 		crawlThread.start();
