@@ -14,6 +14,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.flameling.uva.thesis.validator.ArchivaConfig;
 import com.flameling.uva.thesis.validator.Config;
 import com.flameling.uva.thesis.validator.Constants;
 import com.flameling.uva.thesis.validator.NoSecurity;
@@ -30,7 +31,7 @@ public class Parser {
 	private String securedUrl = "http://localhost:8080/archiva/";
 	
 	public static void main(String[] args){
-		Config.getInstance().setTestApp(TestApp.ARCHIVA);
+		Config.setInstance(new ArchivaConfig());
 		Parser parser = new Parser();
 		parser.parse();
 	}
@@ -133,20 +134,7 @@ public class Parser {
 	
 	private Document parseStrippedDOM(String dom){
 		Document doc = Jsoup.parse(dom);
-		doc.getElementsByTag("head").first().getElementsByAttributeValue("src", "/archiva/struts/dojo/src/browser_debug.js").remove();
-		doc.getElementsByTag("head").first().getElementsByAttributeValue("src", "/archiva/struts/dojo/src/debug.js").remove();
-		doc.getElementsByTag("head").first().getElementsByAttributeValue("href", "/archiva/struts/xhtml/styles.css").remove();
-		doc.getElementsByTag("head").first().getElementsByAttributeValue("src", "/archiva/struts/dojo/dojo.js").remove();
-		doc.getElementsByTag("head").first().getElementsByAttributeValue("src", "/archiva/struts/simple/dojoRequire.js").remove();
-		doc.getElementsByTag("body").first().getElementById("topSearchBox").getElementsByAttributeValue("src", "/archiva/struts/xhtml/validation.js").remove();
-		//doc.getElementsByTag("body").first().getElementsByAttributeValue("href", "http://www.apache.org/").remove();
-		//doc.getElementsByTag("body").first().getElementsByAttributeValue("href", "http://archiva.apache.org/").remove();
-		Elements elements = doc.getElementsByTag("head").first().getElementsByTag("script");
-		for(Element element : elements){
-			if(!element.dataNodes().isEmpty() && element.dataNodes().get(0).attr("data").contains("dojo.hostenv._global_omit_module_check = false;")){
-				element.remove();
-			}
-		}
+		Config.getInstance().stripDom(doc);
 		return doc;
 	}
 	

@@ -1,30 +1,26 @@
 package com.flameling.uva.thesis.validator;
 
 import java.io.File;
-import java.util.Set;
 
-public class Config{
-	static Config instance;
+import org.jsoup.nodes.Document;
+
+import com.crawljax.core.configuration.CrawljaxConfiguration.CrawljaxConfigurationBuilder;
+
+public abstract class Config{
+	private static Config instance;
 	TestApp currentTestApp;
 	SecurityMeasures securityMeasures = new SecurityMeasures();
 
-	public static Config getInstance(){
-		if (instance == null){
-			try {
-				instance = Config.class.newInstance();
-			} catch (InstantiationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return instance;
+	Config(TestApp testApp){
+		this.currentTestApp = testApp;
 	}
 	
-	public void setTestApp(TestApp testApp){
-		this.currentTestApp = testApp;
+	public static void setInstance(Config config){
+		instance = config;
+	}
+	
+	public static Config getInstance(){
+		return instance;
 	}
 	
 	public File getOutputFolder(){
@@ -36,5 +32,8 @@ public class Config{
 	public SecurityMeasures getSecurityMeasures() {
 		return securityMeasures;
 	}
+	
+	abstract public void stripDom(Document doc);
+	abstract public void configBuilder(CrawljaxConfigurationBuilder builder);
 
 }

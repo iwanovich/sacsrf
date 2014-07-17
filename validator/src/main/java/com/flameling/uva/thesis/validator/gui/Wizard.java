@@ -1,18 +1,20 @@
 package com.flameling.uva.thesis.validator.gui;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Vector;
+import java.util.EnumMap;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import com.flameling.uva.thesis.validator.TestApp;
 import com.flameling.uva.thesis.validator.crawler.Crawler;
 
 public class Wizard extends JFrame{
@@ -22,6 +24,8 @@ public class Wizard extends JFrame{
 	private JTextField securedUrlField;
 	private String unsecuredUrl;
 	private String securedUrl;
+	private final RadioButtonGroupEnumAdapter<TestApp> testAppButtonGroup = new RadioButtonGroupEnumAdapter<TestApp>(TestApp.class);
+	private final ButtonGroup buttonGroup = new ButtonGroup();
 	
 	public Wizard(){
 		getContentPane().setLayout(null);
@@ -37,13 +41,13 @@ public class Wizard extends JFrame{
 	private void createComponents(){
 		JLabel urlLabel = new JLabel();
 		urlLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		urlLabel.setBounds(86, 19, 50, 20);
+		urlLabel.setBounds(86, 84, 50, 20);
 		urlLabel.setText("URL");
 		urlField = new JTextField("http://localhost:8080/archiva/");
-		urlField.setBounds(154, 20, 600, 20);
+		urlField.setBounds(154, 85, 600, 20);
 		
 		nextButton = new JButton("Next");
-		nextButton.setBounds(237, 326, 200, 30);
+		nextButton.setBounds(299, 289, 200, 30);
 		nextButton.setAction(new FirstCrawlRun("Start crawl"));
 		
 		getContentPane().add(urlLabel);
@@ -52,17 +56,50 @@ public class Wizard extends JFrame{
 		
 		securedUrlField = new JTextField("http://");
 		securedUrlField.setEnabled(false);
-		securedUrlField.setBounds(154, 45, 600, 20);
+		securedUrlField.setBounds(153, 207, 600, 20);
 		getContentPane().add(securedUrlField);
 		
 		JLabel securedUrlLabel = new JLabel("Secured URL");
 		securedUrlLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		securedUrlLabel.setBounds(33, 47, 103, 15);
+		securedUrlLabel.setBounds(32, 209, 103, 15);
 		getContentPane().add(securedUrlLabel);
+		
+		JRadioButton rdbtnArchiva = new JRadioButton("Archiva");
+		buttonGroup.add(rdbtnArchiva);
+		rdbtnArchiva.setSelected(true);
+		testAppButtonGroup.associate(TestApp.ARCHIVA, rdbtnArchiva);
+		rdbtnArchiva.setBounds(154, 54, 79, 23);
+		getContentPane().add(rdbtnArchiva);
+		
+		JRadioButton rdbtnOpenkm = new JRadioButton("OpenKM");
+		buttonGroup.add(rdbtnOpenkm);
+		testAppButtonGroup.associate(TestApp.OPEN_KM, rdbtnOpenkm);
+		rdbtnOpenkm.setBounds(245, 54, 84, 23);
+		getContentPane().add(rdbtnOpenkm);
+		
+		JLabel lblTestApplication = new JLabel("Test application");
+		lblTestApplication.setBounds(154, 36, 103, 16);
+		getContentPane().add(lblTestApplication);
+		
+		JLabel lblCsrfSecurityMeasure = new JLabel("CSRF Security measure");
+		lblCsrfSecurityMeasure.setHorizontalAlignment(SwingConstants.LEFT);
+		lblCsrfSecurityMeasure.setBounds(153, 157, 148, 16);
+		getContentPane().add(lblCsrfSecurityMeasure);
+		
+		JCheckBox chckbxTokenBased = new JCheckBox("Token based");
+		chckbxTokenBased.setSelected(true);
+		chckbxTokenBased.setEnabled(false);
+		chckbxTokenBased.setBounds(153, 172, 128, 23);
+		getContentPane().add(chckbxTokenBased);
+		
+		JCheckBox chckbxExplicitConfirmation = new JCheckBox("Explicit confirmation");
+		chckbxExplicitConfirmation.setEnabled(false);
+		chckbxExplicitConfirmation.setBounds(293, 172, 164, 23);
+		getContentPane().add(chckbxExplicitConfirmation);
 	}
 	
 	private void startCrawl(IndicatorThread indicatorThread, String crawlUrl, boolean secured){
-		Crawler crawler = new Crawler(crawlUrl, secured);
+		Crawler crawler = new Crawler(crawlUrl, secured, testAppButtonGroup.getValue());
 		AssistingThread crawlThread = new CrawlThread(indicatorThread, crawler);
 		indicatorThread.start();
 		crawlThread.start();
@@ -122,5 +159,58 @@ public class Wizard extends JFrame{
 		}
 	}
 	
+	/*
+	 * created by Jason S. http://stackoverflow.com/questions/2059122/how-to-use-jradiobutton-groups-with-a-model
+	 */
+	class RadioButtonGroupEnumAdapter<E extends Enum<E>> {
+	    final private Map<E, JRadioButton> buttonMap;
 
+	    public RadioButtonGroupEnumAdapter(Class<E> enumClass)
+	    {
+	        this.buttonMap = new EnumMap<E, JRadioButton>(enumClass);
+	    }
+	    public void importMap(Map<E, JRadioButton> map)
+	    {
+	        for (E e : map.keySet())
+	        {
+	            this.buttonMap.put(e, map.get(e));
+	        }
+	    }
+	    public void associate(E e, JRadioButton btn)
+	    {
+	        this.buttonMap.put(e, btn);
+	    }
+	    public E getValue()
+	    {
+	        for (E e : this.buttonMap.keySet())
+	        {
+	            JRadioButton btn = this.buttonMap.get(e);
+	            if (btn.isSelected())
+	            {
+	                return e;
+	            }
+	        }
+	        return null;
+	    }
+	    public void setValue(E e)
+	    {
+	        JRadioButton btn = (e == null) ? null : this.buttonMap.get(e);
+	        if (btn == null)
+	        {
+	            // the following doesn't seem efficient...
+	                    // but since when do we have more than say 10 radiobuttons?
+	            for (JRadioButton b : this.buttonMap.values())
+	            {
+	                b.setSelected(false);
+	            }
+
+	        }
+	        else
+	        {
+	            btn.setSelected(true);
+	        }
+	    }
+	}
+	
 }
+
