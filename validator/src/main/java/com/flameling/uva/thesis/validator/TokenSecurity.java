@@ -24,4 +24,8 @@ public class TokenSecurity implements SecurityMeasure {
 		return parsedData;
 	}
 
+	public boolean hasSecurityMeasures() {
+		return true;
+	}
+
 }
