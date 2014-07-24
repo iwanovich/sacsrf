@@ -32,11 +32,12 @@ public class Parser {
 	
 	public static void main(String[] args){
 		Config.setInstance(new ArchivaConfig());
+		Config.getInstance().getSecurityMeasures().add(new TokenSecurity());
 		Parser parser = new Parser();
 		parser.parse();
 	}
 	
-	private void parse(){
+	public void parse(){
 		Util.setUrlOracle(unsecuredUrl);
 		Config.getInstance().getSecurityMeasures().add(new NoSecurity());
 		parseFilesRecursively(cleanFolder);

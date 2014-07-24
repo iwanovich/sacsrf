@@ -14,9 +14,16 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import com.flameling.uva.thesis.validator.ArchivaConfig;
+import com.flameling.uva.thesis.validator.Config;
+import com.flameling.uva.thesis.validator.NoSecurity;
+import com.flameling.uva.thesis.validator.OpenKMConfig;
 import com.flameling.uva.thesis.validator.TestApp;
+import com.flameling.uva.thesis.validator.TokenSecurity;
 import com.flameling.uva.thesis.validator.crawler.Crawler;
+import com.flameling.uva.thesis.validator.parser.Parser;
 
+@SuppressWarnings("serial")
 public class Wizard extends JFrame{
 	
 	JTextField urlField;
@@ -26,6 +33,8 @@ public class Wizard extends JFrame{
 	private String securedUrl;
 	private final RadioButtonGroupEnumAdapter<TestApp> testAppButtonGroup = new RadioButtonGroupEnumAdapter<TestApp>(TestApp.class);
 	private final ButtonGroup buttonGroup = new ButtonGroup();
+	private JCheckBox chckbxTokenBased;
+	private JCheckBox chckbxExplicitConfirmation;
 	
 	public Wizard(){
 		getContentPane().setLayout(null);
@@ -86,35 +95,71 @@ public class Wizard extends JFrame{
 		lblCsrfSecurityMeasure.setBounds(153, 157, 148, 16);
 		getContentPane().add(lblCsrfSecurityMeasure);
 		
-		JCheckBox chckbxTokenBased = new JCheckBox("Token based");
-		chckbxTokenBased.setSelected(true);
+		chckbxTokenBased = new JCheckBox("Token based");
+		chckbxTokenBased.setSelected(false);
 		chckbxTokenBased.setEnabled(false);
 		chckbxTokenBased.setBounds(153, 172, 128, 23);
 		getContentPane().add(chckbxTokenBased);
 		
-		JCheckBox chckbxExplicitConfirmation = new JCheckBox("Explicit confirmation");
+		chckbxExplicitConfirmation = new JCheckBox("Explicit confirmation");
 		chckbxExplicitConfirmation.setEnabled(false);
 		chckbxExplicitConfirmation.setBounds(293, 172, 164, 23);
 		getContentPane().add(chckbxExplicitConfirmation);
 	}
 	
 	private void startCrawl(IndicatorThread indicatorThread, String crawlUrl, boolean secured){
-		Crawler crawler = new Crawler(crawlUrl, secured, testAppButtonGroup.getValue());
+		initConfig();
+		Crawler crawler = new Crawler(crawlUrl, testAppButtonGroup.getValue());
 		AssistingThread crawlThread = new CrawlThread(indicatorThread, crawler);
 		indicatorThread.start();
 		crawlThread.start();
+	}
+	
+	private void startAnalysis(){
+		Parser parser = new Parser();
+		parser.parse();
+		afterAnalysis();
+	}
+	
+	private void initConfig(){
+		Config config;
+		switch(testAppButtonGroup.getValue()){
+		case ARCHIVA:	
+			config = new ArchivaConfig();
+			break;
+		case OPEN_KM:
+			config = new OpenKMConfig();
+			break;
+		default:
+			config = null;
+		}
+		Config.setInstance(config);
+		if(chckbxTokenBased.isSelected()){
+			config.getSecurityMeasures().add(new TokenSecurity());
+		} else {
+			config.getSecurityMeasures().add(new NoSecurity());
+		}
 	}
 	
 	private void afterFirstCrawl(){
 		nextButton.setAction(new SecondCrawlRun("start crawling secured url"));
 		securedUrlField.setText(urlField.getText());
 		securedUrlField.setEnabled(true);
+		chckbxExplicitConfirmation.setEnabled(true);
+		chckbxTokenBased.setEnabled(true);
 	}
 	
 	private void afterSecondCrawl(){
+		nextButton.setAction(new Analysis("start analysis"));
+		chckbxExplicitConfirmation.setEnabled(false);
+		chckbxTokenBased.setEnabled(false);
+	}
+	
+	private void afterAnalysis(){
 		nextButton.setEnabled(false);
 	}
 	
+	@SuppressWarnings("serial")
 	class FirstCrawlRun extends AbstractAction{
 		
 		public FirstCrawlRun(String buttonText){
@@ -137,6 +182,7 @@ public class Wizard extends JFrame{
 		}
 	}
 	
+	@SuppressWarnings("serial")
 	class SecondCrawlRun extends AbstractAction{
 		
 		public SecondCrawlRun(String buttonText){
@@ -156,6 +202,27 @@ public class Wizard extends JFrame{
 			};
 			securedUrl = crawlUrl;
 			startCrawl(indicatorThread, crawlUrl, true);		
+		}
+	}
+	
+	@SuppressWarnings("serial")
+	class Analysis extends AbstractAction{
+		
+		public Analysis(String buttonText){
+			super(buttonText);
+		}
+
+		public void actionPerformed(ActionEvent e) {
+//			IndicatorThread indicatorThread = new IndicatorThread(nextButton, "Analyzing"){
+//
+//				@Override
+//				public void after() {
+//				afterAnalysis();
+//				}
+//				
+//			};
+			nextButton.setEnabled(false);
+			startAnalysis();
 		}
 	}
 	

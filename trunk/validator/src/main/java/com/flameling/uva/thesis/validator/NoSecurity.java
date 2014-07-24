@@ -18,4 +18,8 @@ public class NoSecurity implements SecurityMeasure {
 		return jsParser.cleanParse(data);
 	}
 
+	public boolean hasSecurityMeasures() {
+		return false;
+	}
+
 }

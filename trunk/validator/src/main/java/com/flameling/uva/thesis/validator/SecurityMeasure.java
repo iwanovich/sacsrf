@@ -7,5 +7,6 @@ public interface SecurityMeasure {
 	String cleanUrl(String url);
 	public void parseDOM(Document doc);
 	public String parseJSData(String data);
+	public boolean hasSecurityMeasures();
 
 }
