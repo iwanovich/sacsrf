@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.jsoup.nodes.Document;
+import org.mozilla.javascript.ast.AstRoot;
 
 public class SecurityMeasures implements SecurityMeasure {
 	
@@ -27,11 +28,10 @@ public class SecurityMeasures implements SecurityMeasure {
 		}
 	}
 
-	public String parseJSData(String data) {
+	public void parseJsAst(AstRoot ast) {
 		for(SecurityMeasure sm : securityMeasures){
-			data = sm.parseJSData(data);
+			sm.parseJsAst(ast);
 		}
-		return data;
 	}
 	
 	public void add(SecurityMeasure securityMeasure){
