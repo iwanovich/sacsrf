@@ -10,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -21,7 +22,9 @@ import com.flameling.uva.thesis.validator.OpenKMConfig;
 import com.flameling.uva.thesis.validator.TestApp;
 import com.flameling.uva.thesis.validator.TokenSecurity;
 import com.flameling.uva.thesis.validator.crawler.Crawler;
+import com.flameling.uva.thesis.validator.diff.BasicDiff;
 import com.flameling.uva.thesis.validator.parser.Parser;
+import java.awt.event.ActionListener;
 
 @SuppressWarnings("serial")
 public class Wizard extends JFrame{
@@ -97,7 +100,7 @@ public class Wizard extends JFrame{
 		
 		chckbxTokenBased = new JCheckBox("Token based");
 		chckbxTokenBased.setSelected(false);
-		chckbxTokenBased.setEnabled(false);
+		chckbxTokenBased.setEnabled(true);
 		chckbxTokenBased.setBounds(153, 172, 128, 23);
 		getContentPane().add(chckbxTokenBased);
 		
@@ -105,6 +108,15 @@ public class Wizard extends JFrame{
 		chckbxExplicitConfirmation.setEnabled(false);
 		chckbxExplicitConfirmation.setBounds(293, 172, 164, 23);
 		getContentPane().add(chckbxExplicitConfirmation);
+		
+		JButton btnAnalysis = new JButton("Analysis");
+		btnAnalysis.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				startAnalysis();
+			}
+		});
+		btnAnalysis.setBounds(321, 373, 117, 29);
+		getContentPane().add(btnAnalysis);
 	}
 	
 	private void startCrawl(IndicatorThread indicatorThread, String crawlUrl, boolean secured){
@@ -116,6 +128,7 @@ public class Wizard extends JFrame{
 	}
 	
 	private void startAnalysis(){
+		initConfig();
 		Parser parser = new Parser();
 		parser.parse();
 		afterAnalysis();
@@ -152,11 +165,14 @@ public class Wizard extends JFrame{
 	private void afterSecondCrawl(){
 		nextButton.setAction(new Analysis("start analysis"));
 		chckbxExplicitConfirmation.setEnabled(false);
-		chckbxTokenBased.setEnabled(false);
+		chckbxTokenBased.setEnabled(true);
 	}
 	
 	private void afterAnalysis(){
 		nextButton.setEnabled(false);
+		String message = "Number of missing tokens: " + TokenSecurity.missingTokens
+				+ "\n Number of diffs in findArtifact.action.html: " + BasicDiff.diffCounter;
+		JOptionPane.showMessageDialog(this, message);
 	}
 	
 	@SuppressWarnings("serial")
@@ -278,6 +294,5 @@ public class Wizard extends JFrame{
 	        }
 	    }
 	}
-	
 }
 

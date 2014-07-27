@@ -39,10 +39,8 @@ public class Parser {
 	
 	public void parse(){
 		Util.setUrlOracle(unsecuredUrl);
-		Config.getInstance().getSecurityMeasures().add(new NoSecurity());
 		parseFilesRecursively(cleanFolder);
 		Util.setUrlOracle(securedUrl);
-		Config.getInstance().getSecurityMeasures().add(new TokenSecurity());
 		parseFilesRecursively(securedFolder);
 		List<File> cleanFiles = Util.getFiles(cleanFolder, true);
 		List<File> securedFiles = Util.getFiles(securedFolder, true);
@@ -64,6 +62,7 @@ public class Parser {
 		for(File file : files){
 			try {
 				String source = FileUtils.readFileToString(file);
+				Config.getInstance().currentFile = file;
 				String parsedDOM = parseDOM(source);
 				FileUtils.write(file, parsedDOM);
 			} catch (IOException e) {
@@ -118,6 +117,7 @@ public class Parser {
 	
 	private void parseJS(Document doc){
 		Elements scripts = doc.getElementsByTag("script");
+		JSParser jsParser = new JSParser();
 		for(Element script : scripts){
 			if (script.hasAttr("type") && script.attr("type").contains("javascript")
 					&& !script.dataNodes().isEmpty()){
@@ -127,7 +127,7 @@ public class Parser {
 				// This is needed because the ChromeDriver does character escaping.
 				actualData = StringEscapeUtils.unescapeHtml4(actualData);
 				actualData = removeHTMLComments(actualData);
-				String parsedData = Config.getInstance().getSecurityMeasures().parseJSData(actualData);
+				String parsedData = jsParser.parseJSData(actualData);
 				data.attr("data", parsedData);
 			}
 		}

@@ -10,6 +10,7 @@ public abstract class Config{
 	private static Config instance;
 	TestApp currentTestApp;
 	SecurityMeasures securityMeasures = new SecurityMeasures();
+	public File currentFile;
 
 	Config(TestApp testApp){
 		this.currentTestApp = testApp;

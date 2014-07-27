@@ -11,7 +11,10 @@ import org.mozilla.javascript.ast.AstRoot;
 import org.mozilla.javascript.ast.NodeVisitor;
 import org.mozilla.javascript.ast.StringLiteral;
 
+import com.flameling.uva.thesis.validator.ArchivaConfig;
+import com.flameling.uva.thesis.validator.Config;
 import com.flameling.uva.thesis.validator.Constants;
+import com.flameling.uva.thesis.validator.TokenSecurity;
 import com.flameling.uva.thesis.validator.Util;
 
 public class JSParser {
@@ -69,20 +72,15 @@ public class JSParser {
         +"}";
 		
 		JSParser parser = new JSParser();
-		String output = parser.removeTokens(js2);
+		Config.setInstance(new ArchivaConfig());
+		Config.getInstance().getSecurityMeasures().add(new TokenSecurity());
+		String output = parser.parseJSData(js2);
 		System.out.println(output);
 	}
 	
-	public String removeTokens(String src){
+	public String parseJSData(String src){
 		AstRoot ast = parse(src);
-		NodeVisitor visitor = new JSTokenRemover();
-		ast.visit(visitor);
-		String result = ast.toSource();
-		return result;
-	}
-	
-	public String cleanParse(String src){
-		AstRoot ast = parse(src);
+		Config.getInstance().getSecurityMeasures().parseJsAst(ast);
 		String result = ast.toSource();
 		return result;
 	}
@@ -131,21 +129,5 @@ public class JSParser {
 			return factory.parse(strReader, null, startLineNum);
 
 		}
-	
-	private class JSTokenRemover implements NodeVisitor{
-
-		public boolean visit(AstNode node) {
-			if(node instanceof StringLiteral){
-				StringLiteral stringNode = (StringLiteral) node;
-				String value = stringNode.getValue();
-				if(value != null && value.contains(Constants.TOKEN_KEY)){
-					value = Util.stripToken(value);
-					stringNode.setValue(value);
-				}
-			}
-			return true;
-		}
-		
-	}
 
 }
