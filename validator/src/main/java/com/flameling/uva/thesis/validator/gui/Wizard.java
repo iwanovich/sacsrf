@@ -22,7 +22,7 @@ import com.flameling.uva.thesis.validator.OpenKMConfig;
 import com.flameling.uva.thesis.validator.TestApp;
 import com.flameling.uva.thesis.validator.TokenSecurity;
 import com.flameling.uva.thesis.validator.crawler.Crawler;
-import com.flameling.uva.thesis.validator.diff.BasicDiff;
+import com.flameling.uva.thesis.validator.diff.DiffLineCounter;
 import com.flameling.uva.thesis.validator.parser.Parser;
 import java.awt.event.ActionListener;
 
@@ -171,7 +171,7 @@ public class Wizard extends JFrame{
 	private void afterAnalysis(){
 		nextButton.setEnabled(false);
 		String message = "Number of missing tokens: " + TokenSecurity.missingTokens
-				+ "\n Number of diffs in findArtifact.action.html: " + BasicDiff.diffCounter;
+				+ "\n Number of diffs in findArtifact.action.html: " + DiffLineCounter.diffCounter;
 		JOptionPane.showMessageDialog(this, message);
 	}
 	
