@@ -21,7 +21,7 @@ import com.flameling.uva.thesis.validator.NoSecurity;
 import com.flameling.uva.thesis.validator.TestApp;
 import com.flameling.uva.thesis.validator.TokenSecurity;
 import com.flameling.uva.thesis.validator.Util;
-import com.flameling.uva.thesis.validator.diff.BasicDiff;
+import com.flameling.uva.thesis.validator.diff.DiffLineCounter;
 
 public class Parser {
 	
@@ -101,7 +101,8 @@ public class Parser {
 			String cleanData = FileUtils.readFileToString(cleanFile);
 			String securedData = FileUtils.readFileToString(securedFile);
 			File diffFile = createDiffFile(cleanFile);
-			BasicDiff.diffLineMode(cleanData, securedData, diffFile); // writing the diff to disk
+			DiffLineCounter dlc = new DiffLineCounter(cleanData, securedData);
+			dlc.writeDiffToFile(diffFile); // writing the diff to disk
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
