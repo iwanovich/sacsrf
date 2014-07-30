@@ -13,6 +13,7 @@ public class SecurityMeasures implements SecurityMeasure {
 	
 	public SecurityMeasures(){
 		this.securityMeasures = new HashSet<SecurityMeasure>();
+		add(new NoSecurity());
 	}
 
 	public String cleanUrl(String url){

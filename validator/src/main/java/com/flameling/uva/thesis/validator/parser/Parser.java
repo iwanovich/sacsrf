@@ -12,6 +12,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.DataNode;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Entities;
 import org.jsoup.select.Elements;
 
 import com.flameling.uva.thesis.validator.ArchivaConfig;
@@ -38,8 +39,10 @@ public class Parser {
 	}
 	
 	public void parse(){
+		Config.getInstance().setSecurityMeasureBlock(true);
 		Util.setUrlOracle(unsecuredUrl);
 		parseFilesRecursively(cleanFolder);
+		Config.getInstance().setSecurityMeasureBlock(false);
 		Util.setUrlOracle(securedUrl);
 		parseFilesRecursively(securedFolder);
 		List<File> cleanFiles = Util.getFiles(cleanFolder, true);
@@ -148,6 +151,7 @@ public class Parser {
 		Document doc = parseStrippedDOM(dom);
 		Config.getInstance().getSecurityMeasures().parseDOM(doc);
 		parseJS(doc);
+		doc.outputSettings().prettyPrint(false);
 		return doc.outerHtml();
 	}
 	

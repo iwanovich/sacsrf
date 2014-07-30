@@ -8,6 +8,7 @@ import com.crawljax.core.configuration.CrawljaxConfiguration.CrawljaxConfigurati
 
 public abstract class Config{
 	private static Config instance;
+	private boolean securityBlock = false;
 	TestApp currentTestApp;
 	SecurityMeasures securityMeasures = new SecurityMeasures();
 	public File currentFile;
@@ -30,8 +31,12 @@ public abstract class Config{
 		return result;
 	}
 	
+	public void setSecurityMeasureBlock(boolean block){
+		this.securityBlock = block;
+	}
+	
 	public SecurityMeasures getSecurityMeasures() {
-		return securityMeasures;
+		return securityBlock ? new SecurityMeasures() : securityMeasures;
 	}
 	
 	abstract public void stripDom(Document doc);

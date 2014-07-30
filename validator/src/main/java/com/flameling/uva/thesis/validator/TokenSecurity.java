@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 import org.jsoup.select.NodeVisitor;
@@ -48,7 +49,27 @@ public class TokenSecurity implements SecurityMeasure {
 		}
 
 		public void tail(Node node, int depth) {
-			// TODO Auto-generated method stub
+			if(node == null)
+				System.out.println("KNOR!!");
+			removeTokenInput(node);
+		}
+		
+		private void removeTokenInput(Node node){
+			if(node instanceof Element){
+				Element element = (Element) node;
+				String tagName = element.tagName();
+				if(tagName == null) System.out.println("BOE!!");
+				if(tagName != null && tagName.equals("input")){
+					String nameAttr = element.attr("name");
+					if(nameAttr == null) System.out.println("BOE-2!!");
+					if(nameAttr.equals(csrfTokenKey)){
+						if(element.parent() != null){
+							element.remove();
+						}
+						
+					}
+				}
+			}
 		}
 		
 		private void alterAttr(Node node, String attr){

@@ -149,8 +149,6 @@ public class Wizard extends JFrame{
 		Config.setInstance(config);
 		if(chckbxTokenBased.isSelected()){
 			config.getSecurityMeasures().add(new TokenSecurity());
-		} else {
-			config.getSecurityMeasures().add(new NoSecurity());
 		}
 	}
 	
