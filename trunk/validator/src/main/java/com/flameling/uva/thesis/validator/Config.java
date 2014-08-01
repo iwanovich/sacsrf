@@ -11,6 +11,7 @@ public abstract class Config{
 	private boolean securityBlock = false;
 	TestApp currentTestApp;
 	SecurityMeasures securityMeasures = new SecurityMeasures();
+	AnalysisResults analysisResults = new AnalysisResults();
 	public File currentFile;
 
 	Config(TestApp testApp){
@@ -39,6 +40,10 @@ public abstract class Config{
 		return securityBlock ? new SecurityMeasures() : securityMeasures;
 	}
 	
+	public AnalysisResults getAnalysisResults() {
+		return analysisResults;
+	}
+
 	abstract public void stripDom(Document doc);
 	abstract public void configBuilder(CrawljaxConfigurationBuilder builder);
 

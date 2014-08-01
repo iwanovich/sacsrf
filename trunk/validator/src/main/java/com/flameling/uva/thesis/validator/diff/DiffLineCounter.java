@@ -9,13 +9,14 @@ import java.util.ListIterator;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.flameling.uva.thesis.validator.Config;
+import com.flameling.uva.thesis.validator.FileAnalysisResult;
 import com.flameling.uva.thesis.validator.diff.DiffMatchPatch.Diff;
 import com.flameling.uva.thesis.validator.diff.DiffMatchPatch.LinesToCharsResult;
 import com.flameling.uva.thesis.validator.diff.DiffMatchPatch.Operation;
 
 
 public class DiffLineCounter {
-	public static int diffCounter = 0;
 	private DiffMatchPatch dmp;
 	LinesToCharsResult ltcr;
 	LinkedList<Diff> diffs;
@@ -36,9 +37,10 @@ public class DiffLineCounter {
     		return;
     	}
     	String prettyDiff = dmp.diff_prettyHtml(diffs);
-    	if(diffOut.getName().equals("findArtifact.action.html")){
-    		diffCounter = getNumberOfDifferingLines();
-    	} 
+    	
+    	FileAnalysisResult far = Config.getInstance().getAnalysisResults().getCurrentFileAnalysis();
+    	far.setMutationLineCount(getNumberOfDifferingLines());
+    	
     	FileWriter out = null;
     	try {
     		diffOut.getParentFile().mkdirs();

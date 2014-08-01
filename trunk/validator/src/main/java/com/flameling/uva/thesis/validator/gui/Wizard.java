@@ -168,8 +168,8 @@ public class Wizard extends JFrame{
 	
 	private void afterAnalysis(){
 		nextButton.setEnabled(false);
-		String message = "Number of missing tokens: " + TokenSecurity.missingTokens
-				+ "\n Number of diffs in findArtifact.action.html: " + DiffLineCounter.diffCounter;
+		String message = "Number of missing tokens: " + Config.getInstance().getAnalysisResults().getMissingTokenUrlMutations()
+				+ "\n Number of diffs: " + Config.getInstance().getAnalysisResults().getMutationLineCount();
 		JOptionPane.showMessageDialog(this, message);
 	}
 	
