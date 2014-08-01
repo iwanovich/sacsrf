@@ -1,5 +1,6 @@
 package com.flameling.uva.thesis.validator;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,16 +13,21 @@ import org.mozilla.javascript.ast.AstNode;
 import org.mozilla.javascript.ast.AstRoot;
 import org.mozilla.javascript.ast.StringLiteral;
 
+import com.flameling.uva.thesis.validator.parser.Parser;
+
 public class TokenSecurity implements SecurityMeasure {
-	static public int missingTokens = 0;
+	//static public int missingTokens = 0;
 
 	public String cleanUrl(String url) {
 		return Util.stripToken(url);
 	}
 	
-	public void parseDOM(Document doc){
+	public void parseDOM(Document doc, File currentFile){
 		Elements els = doc.select("*");
-		els.traverse(new URLTokenRemover());
+		URLTokenRemover utr = new URLTokenRemover();
+		els.traverse(utr);
+		FileAnalysisResult far = Config.getInstance().getAnalysisResults().getCurrentFileAnalysis();
+		far.setMissingTokenUrlMutations(utr.missingTokens);
 	}
 	
 	public void parseJsAst(AstRoot ast){
@@ -37,6 +43,7 @@ public class TokenSecurity implements SecurityMeasure {
 		
 		private static final String csrfTokenKey = Constants.TOKEN_KEY;
 		private Set<Node> modifiedNodes = new HashSet<Node>();
+		private int missingTokens = 0;
 
 		public URLTokenRemover() {
 			// TODO Auto-generated constructor stub
@@ -49,8 +56,6 @@ public class TokenSecurity implements SecurityMeasure {
 		}
 
 		public void tail(Node node, int depth) {
-			if(node == null)
-				System.out.println("KNOR!!");
 			removeTokenInput(node);
 		}
 		
@@ -58,11 +63,9 @@ public class TokenSecurity implements SecurityMeasure {
 			if(node instanceof Element){
 				Element element = (Element) node;
 				String tagName = element.tagName();
-				if(tagName == null) System.out.println("BOE!!");
 				if(tagName != null && tagName.equals("input")){
 					String nameAttr = element.attr("name");
-					if(nameAttr == null) System.out.println("BOE-2!!");
-					if(nameAttr.equals(csrfTokenKey)){
+					if(nameAttr != null && nameAttr.equals(csrfTokenKey)){
 						if(element.parent() != null){
 							element.remove();
 						}
@@ -83,7 +86,6 @@ public class TokenSecurity implements SecurityMeasure {
 						&& !Util.isOtherDomain(srcValue)){
 				node.attr(attr, srcValue + "[[MISSING_TOKEN!!]]");
 				modifiedNodes.add(node);
-				if(Config.getInstance().currentFile != null && Config.getInstance().currentFile.getName().contains("findArtifact.action.html"))
 				missingTokens++;
 				}
 			}

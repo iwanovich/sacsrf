@@ -1,5 +1,6 @@
 package com.flameling.uva.thesis.validator;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,9 +24,9 @@ public class SecurityMeasures implements SecurityMeasure {
 		return url;
 	}
 
-	public void parseDOM(Document doc) {
+	public void parseDOM(Document doc, File currentFile) {
 		for(SecurityMeasure sm : securityMeasures){
-			sm.parseDOM(doc);
+			sm.parseDOM(doc, currentFile);
 		}
 	}
 

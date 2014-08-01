@@ -6,7 +6,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +27,43 @@ public class Util {
 
 	public static void setUrlOracle(String urlOracle) {
 		Util.urlOracle = urlOracle;
+	}
+	
+	/**
+	 * The first occurence in <code>oracles</code> that matches as a path substring of <code>file</code>
+	 * will be removed from <code>file</code>'s path and returned. If not one occurrence in <code>oracles</code>
+	 * matches as a substring of <code>file</code>'s path, the full path of <code>file</code> is returned.
+	 * @param file
+	 * @param oracles
+	 * @return
+	 * @see #getRelativePath(String, Set)
+	 */
+	public static String getRelativePath(File file, Set<File> oracles){
+		String filePath = file.getAbsolutePath();
+		Set<String> stringOracles = new HashSet<String>();
+		for(File fileOracle : oracles){
+			stringOracles.add(fileOracle.getAbsolutePath());
+		}
+		return getRelativePath(filePath, stringOracles);
+	}
+	
+	/**
+	 * The first occurence in <code>oracles</code> that matches as a substring of <code>filePath</code>
+	 * will be removed from <code>filePath</code>. If not one occurrence in <code>oracles</code>
+	 * matches as a substring of <code>filePath</code>, the full <code>filePath</code> is returned.
+	 * @param filePath
+	 * @param oracles
+	 * @return
+	 */
+	public static String getRelativePath(String filePath, Set<String> oracles){
+		String key = filePath;
+		for(String oracle : oracles){
+			if(filePath.contains(oracle)){
+				key = filePath.replace(oracle, "");
+				break;
+			}
+		}
+		return key;
 	}
 
 	public static String stripToken(String url){

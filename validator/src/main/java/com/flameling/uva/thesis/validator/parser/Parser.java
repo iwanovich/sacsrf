@@ -3,7 +3,9 @@ package com.flameling.uva.thesis.validator.parser;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.io.FileUtils;
@@ -12,20 +14,20 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.DataNode;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Entities;
 import org.jsoup.select.Elements;
 
+import com.flameling.uva.thesis.validator.AnalysisResults;
 import com.flameling.uva.thesis.validator.ArchivaConfig;
 import com.flameling.uva.thesis.validator.Config;
 import com.flameling.uva.thesis.validator.Constants;
-import com.flameling.uva.thesis.validator.NoSecurity;
-import com.flameling.uva.thesis.validator.TestApp;
+import com.flameling.uva.thesis.validator.FileAnalysisResult;
 import com.flameling.uva.thesis.validator.TokenSecurity;
 import com.flameling.uva.thesis.validator.Util;
 import com.flameling.uva.thesis.validator.diff.DiffLineCounter;
 
 public class Parser {
 	
+	public static Set<File> srcFolders;
 	private File cleanFolder = new File(Config.getInstance().getOutputFolder().getAbsolutePath() + "/" + Constants.CLEAN_FOLDER_NAME);
 	private File securedFolder = new File(Config.getInstance().getOutputFolder().getAbsolutePath() + "/" + Constants.SECURED_FOLDER_NAME);
 	private String unsecuredUrl = "http://localhost:8080/archiva/";
@@ -39,6 +41,9 @@ public class Parser {
 	}
 	
 	public void parse(){
+		srcFolders = new HashSet<File>();
+		srcFolders.add(cleanFolder);
+		srcFolders.add(securedFolder);
 		Config.getInstance().setSecurityMeasureBlock(true);
 		Util.setUrlOracle(unsecuredUrl);
 		parseFilesRecursively(cleanFolder);
@@ -65,8 +70,9 @@ public class Parser {
 		for(File file : files){
 			try {
 				String source = FileUtils.readFileToString(file);
+				setAnalysisEntry(file);
 				Config.getInstance().currentFile = file;
-				String parsedDOM = parseDOM(source);
+				String parsedDOM = parseDOM(source, file);
 				FileUtils.write(file, parsedDOM);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -78,6 +84,14 @@ public class Parser {
 			parseFilesRecursively(dir);
 		}
 		
+	}
+	
+	private void setAnalysisEntry(File file){
+		AnalysisResults ar = Config.getInstance().getAnalysisResults();
+		String key = Util.getRelativePath(file, srcFolders);
+		FileAnalysisResult far = ar.get(key);
+		ar.put(key, far);
+		ar.setCurrentFileAnalysis(far);
 	}
 	
 	private void diffEqualFiles(List<File> cleanFiles, List<File> securedFiles){
@@ -101,6 +115,7 @@ public class Parser {
 	
 	private void diff(File cleanFile, File securedFile){
 		try {
+			setAnalysisEntry(cleanFile);
 			String cleanData = FileUtils.readFileToString(cleanFile);
 			String securedData = FileUtils.readFileToString(securedFile);
 			File diffFile = createDiffFile(cleanFile);
@@ -147,9 +162,9 @@ public class Parser {
 		return src.replaceAll("<!--[\\s\\S]*?-->", "");
 	}
 	
-	private String parseDOM(String dom){
+	private String parseDOM(String dom, File currentFile){
 		Document doc = parseStrippedDOM(dom);
-		Config.getInstance().getSecurityMeasures().parseDOM(doc);
+		Config.getInstance().getSecurityMeasures().parseDOM(doc, currentFile);
 		parseJS(doc);
 		doc.outputSettings().prettyPrint(false);
 		return doc.outerHtml();
