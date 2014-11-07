@@ -5,6 +5,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -14,6 +15,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.text.JTextComponent;
 
 import com.flameling.uva.thesis.validator.ArchivaConfig;
 import com.flameling.uva.thesis.validator.Config;
@@ -24,7 +26,9 @@ import com.flameling.uva.thesis.validator.TokenSecurity;
 import com.flameling.uva.thesis.validator.crawler.Crawler;
 import com.flameling.uva.thesis.validator.diff.DiffLineCounter;
 import com.flameling.uva.thesis.validator.parser.Parser;
+
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeListener;
 
 @SuppressWarnings("serial")
 public class Wizard extends JFrame{
@@ -77,6 +81,7 @@ public class Wizard extends JFrame{
 		getContentPane().add(securedUrlLabel);
 		
 		JRadioButton rdbtnArchiva = new JRadioButton("Archiva");
+		rdbtnArchiva.addActionListener(new SetUrl(urlField));
 		buttonGroup.add(rdbtnArchiva);
 		rdbtnArchiva.setSelected(true);
 		testAppButtonGroup.associate(TestApp.ARCHIVA, rdbtnArchiva);
@@ -84,6 +89,7 @@ public class Wizard extends JFrame{
 		getContentPane().add(rdbtnArchiva);
 		
 		JRadioButton rdbtnOpenkm = new JRadioButton("OpenKM");
+		rdbtnOpenkm.addActionListener(new SetUrl(urlField));
 		buttonGroup.add(rdbtnOpenkm);
 		testAppButtonGroup.associate(TestApp.OPEN_KM, rdbtnOpenkm);
 		rdbtnOpenkm.setBounds(245, 54, 84, 23);
@@ -171,6 +177,20 @@ public class Wizard extends JFrame{
 		String message = "Number of missing tokens: " + Config.getInstance().getAnalysisResults().getMissingTokenUrlMutations()
 				+ "\n Number of diffs: " + Config.getInstance().getAnalysisResults().getMutationLineCount();
 		JOptionPane.showMessageDialog(this, message);
+	}
+	
+	class SetUrl implements ActionListener{
+		private JTextComponent textComp;
+		
+		public SetUrl(JTextComponent textComp){
+			this.textComp = textComp;
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			TestApp selectedApp = testAppButtonGroup.getValue();
+			urlField.setText(selectedApp.getDefaultUrl());
+		}
+		
 	}
 	
 	@SuppressWarnings("serial")

@@ -163,4 +163,9 @@ public class Util {
 		return result;
 	}
 	
+	public static int countNewlineChars(String text){
+		int matchCount = StringUtils.countMatches(text, "\n");
+		return matchCount;
+	}
+	
 }
