@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.maven.archiva.web.action.admin.appearance.EditOrganisationInfoAction;
+//import org.apache.maven.archiva.web.action.admin.appearance.EditOrganisationInfoAction;
 
 import com.flameling.SACSRF.TokenProcessor.LruCache;
 
