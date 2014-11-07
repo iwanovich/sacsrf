@@ -10,6 +10,7 @@ import java.util.Vector;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.DataNode;
 import org.jsoup.nodes.Document;
@@ -21,6 +22,7 @@ import com.flameling.uva.thesis.validator.ArchivaConfig;
 import com.flameling.uva.thesis.validator.Config;
 import com.flameling.uva.thesis.validator.Constants;
 import com.flameling.uva.thesis.validator.FileAnalysisResult;
+import com.flameling.uva.thesis.validator.FileTuple;
 import com.flameling.uva.thesis.validator.TokenSecurity;
 import com.flameling.uva.thesis.validator.Util;
 import com.flameling.uva.thesis.validator.diff.DiffLineCounter;
@@ -95,22 +97,54 @@ public class Parser {
 	}
 	
 	private void diffEqualFiles(List<File> cleanFiles, List<File> securedFiles){
-		List<Vector<File>> tuples = new ArrayList<Vector<File>>();
+		List<FileTuple> equalFiles = new ArrayList<FileTuple>();
 		for(File cleanFile : cleanFiles){
 			for(File securedFile : securedFiles){
 				String relativeCleanPath = cleanFile.getAbsolutePath().substring((int)cleanFolder.getAbsolutePath().length());
 				String relativeSecuredPath = securedFile.getAbsolutePath().substring((int)securedFolder.getAbsolutePath().length());
 				if (relativeCleanPath.equals(relativeSecuredPath)){
-					Vector<File> tuple = new Vector<File>();
-					tuple.add(cleanFile);
-					tuple.add(securedFile);
-					tuples.add(tuple);
+					FileTuple tuple = new FileTuple();
+					tuple.cleanFile = cleanFile;
+					tuple.securedFile = securedFile;
+					equalFiles.add(tuple);
 				}
 			}
 		}
-		for(Vector<File> tuple : tuples){
-			diff(tuple.get(0), tuple.get(1));
+		
+		for(FileTuple tuple : equalFiles){
+			diff(tuple.cleanFile, tuple.securedFile);
 		}
+		List<File> unequalFiles = getUnequalFiles(equalFiles, cleanFiles, securedFiles);
+		countLinesOfUnequalFiles(unequalFiles);
+		
+	}
+	
+	private void countLinesOfUnequalFiles(List<File> unequalFiles){
+		for(File file : unequalFiles){
+			String key = Util.getRelativePath(file, srcFolders);
+			FileAnalysisResult far = Config.getInstance().getAnalysisResults().get(key);
+			try {
+				String text = FileUtils.readFileToString(file);
+				int lineCount = Util.countNewlineChars(text) + 1;
+				far.setMutationLineCount(lineCount);
+				far.setLineCount(lineCount);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private List<File> getUnequalFiles(List<FileTuple> equalFiles, List<File> cleanFiles, List<File> securedFiles){
+		List<File> copyClean = new ArrayList<File>(cleanFiles);
+		List<File> copySecured = new ArrayList<File>(securedFiles);
+		for(FileTuple tuple : equalFiles){
+			copyClean.remove(tuple.cleanFile);
+			copySecured.remove(tuple.securedFile);
+		}
+		List<File> unequalFiles = new ArrayList<File>();
+		unequalFiles.addAll(copyClean);
+		unequalFiles.addAll(copySecured);
+		return unequalFiles;
 	}
 	
 	private void diff(File cleanFile, File securedFile){

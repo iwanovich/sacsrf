@@ -6,17 +6,27 @@
   <name>Validator</name>
   <description>Validates correctness of thesis program</description>
   
+  <properties>
+  	<crawljax.version>3.5.1</crawljax.version>
+  	<selenium.version>2.44</selenium.version>
+  </properties>
+  
   <dependencies>
+	<dependency>
+		<groupId>org.seleniumhq.selenium</groupId>
+		<artifactId>selenium-java</artifactId>
+		<version>2.44.0</version>
+	</dependency>
   	<dependency>
 	     <groupId>com.crawljax</groupId>
 	     <artifactId>crawljax-core</artifactId>
-	     <version>3.4</version>
+	     <version>${crawljax.version}</version>
 	     <scope>compile</scope>
   	</dependency>
   	<dependency>
     	<groupId>com.crawljax.plugins</groupId>
     	<artifactId>crawloverview-plugin</artifactId>
-    	<version>3.4</version>
+    	<version>${crawljax.version}</version>
 	</dependency>
 	<dependency>
 		<groupId>org.jsoup</groupId>

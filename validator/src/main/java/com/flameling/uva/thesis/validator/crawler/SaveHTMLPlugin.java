@@ -68,7 +68,7 @@ public class SaveHTMLPlugin implements OnNewStatePlugin {
 					same = true;
 				} else {
 					counter++;
-					newFilename = newFilename.substring(0, newFilename.length()-5) + "-" + counter + ".html";
+					newFilename = fn.substring(0, fn.length()-5) + "-" + counter + ".html";
 					File newFile = new File(newFilename);
 					exists = newFile.exists();
 				}
