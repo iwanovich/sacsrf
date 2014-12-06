@@ -1,14 +1,9 @@
 package com.flameling.uva.thesis.partokas;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.nio.charset.Charset;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -16,29 +11,21 @@ import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 import org.jsoup.select.NodeVisitor;
 
-import com.flameling.uva.thesis.partokas.http.header.contenttype.MediaType;
-import com.flameling.uva.thesis.partokas.http.header.contenttype.MediaTypes;
-import com.flameling.uva.thesis.partokas.http.header.contenttype.GroupType;
+import com.flameling.uva.thesis.partokas.http.header.contenttype.ContentType;
 
 public class HtmlTokenInjector {
-	
-	public MediaTypes imageTypes;
-	public MediaTypes htmlTypes;
-	public MediaTypes allTypes;
+
 	
 	public HtmlTokenInjector(){
-		
-		this.imageTypes = new MediaTypes(MediaType.getMediaTypes(GroupType.IMAGE));
-		this.htmlTypes = new MediaTypes(MediaType.HTML);
-		this.allTypes = new MediaTypes(MediaType.values());
 	}
 	
-	public String injectToken(byte[] sourceBytes, String contentType, String token){
-		String result = null;
-		switch(getMediaType(sourceBytes, contentType)){
+	public byte[] injectToken(byte[] sourceBytes, String contentType, String token, String serverName){
+		byte[] result = sourceBytes;
+		switch(ContentType.getMediaType(contentType)){
 		case HTML:
 			String source = new String(sourceBytes);
-			result = injectToken(source, token);
+			String injectedSource = injectToken(source, token, serverName);
+			result = injectedSource.getBytes(Charset.defaultCharset());
 			break;
 			
 			default:
@@ -48,41 +35,26 @@ public class HtmlTokenInjector {
 	}
 	
 	
-	public String injectToken(String source, String token){
+	public String injectToken(String source, String token, String serverName){
 		Document doc = Jsoup.parse(source);
 		Elements els = doc.select("*");
-		URLTokenInjector utr = new URLTokenInjector(token);
+		URLTokenInjector utr = new URLTokenInjector(token, serverName);
 		els.traverse(utr);
 		doc.outputSettings().prettyPrint(false);
 		return doc.outerHtml();
 	}
 	
-	public MediaType getMediaType(byte[] sourceBytes, String contentType){
-		MediaType ct = MediaType.NULL;
-		if(contentType != null && !contentType.isEmpty()){
-			String[] contentTypes;
-			contentTypes = contentType.split(";");
-			List<String> types = Arrays.asList(contentTypes);
-			Set<String> knownTypes = allTypes.getStringNotations();
-			if(!Collections.disjoint(types, knownTypes)){
-				//do parsing
-				Collection<String> intersect  = CollectionUtils.intersection(types, knownTypes);
-				String type = intersect.iterator().next();
-				ct = MediaType.getMediaType(type);
-			}
-		}
-		return ct;
-	}
-	
 private class URLTokenInjector implements NodeVisitor {
 		
-		private static final String csrfTokenKey = Constants.CSRF_NONCE_REQUEST_PARAM;
+		private static final String csrfTokenKey = Constants.TOKEN_KEY;
 		private Set<Node> modifiedNodes = new HashSet<Node>();
 		private int missingTokens = 0;
 		private String token = null;
+		private String serverName = null;
 
-		public URLTokenInjector(String token) {
+		public URLTokenInjector(String token, String serverName) {
 			this.token = token;
+			this.serverName= serverName;
 		}
 
 		public void head(Node node, int depth) {
@@ -114,7 +86,11 @@ private class URLTokenInjector implements NodeVisitor {
 		private void alterAttr(Node node, String attr){
 			String srcValue = node.attr(attr);
 			if (!srcValue.isEmpty()) {
-				node.attr(attr, addNonce(srcValue, this.token));
+				if(!srcValue.contains(csrfTokenKey) && !Util.isOtherDomain(srcValue, this.serverName)) {
+					//node.attr(attr, Util.stripToken(srcValue));
+					//modifiedNodes.add(node);
+					node.attr(attr, addNonce(srcValue, this.token));
+				}
 			}
 		}
 		

@@ -18,9 +18,8 @@ public class TypeNotationTest {
 
 	@Test
 	public void testEqualsObject() {
-		String mediaType = "image/png";
-		TypeNotation tn1 = new TypeNotation(mediaType);
-		TypeNotation tn2 = new TypeNotation(mediaType);
+		TypeNotation tn1 = new TypeNotation(GroupType.IMAGE,SubType.PNG);
+		TypeNotation tn2 = new TypeNotation(GroupType.IMAGE,SubType.PNG);
 		assertEquals(tn1, tn2);
 		assertTrue(tn1.equals(tn2));
 		assertTrue(tn2.equals(tn1));

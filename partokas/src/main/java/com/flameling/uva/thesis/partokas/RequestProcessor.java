@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.flameling.uva.thesis.partokas.http.MutableHttpResponse;
+
 @SuppressWarnings("restriction")
 public class RequestProcessor {
 	
@@ -30,9 +32,7 @@ public class RequestProcessor {
 	
 	HttpServletResponse process(HttpServletRequest request, HttpServletResponse response)
 			throws NoValidTokenException{
-		
-
-        HttpServletResponse wResponse = response;
+		HttpServletResponse result = response;
         HttpSession session = request.getSession(false);
         LruCache<String> nonceCache = getCacheFromSession(session);
         if (!skipNonceCheck(request) && hasNoValidToken(nonceCache, request)) {
@@ -44,9 +44,10 @@ public class RequestProcessor {
         	nonceCache = (LruCache<String>) session.getAttribute(Constants.CSRF_NONCE_SESSION_ATTR_NAME);
             String newNonce = generateNonce();
             nonceCache.add(newNonce);
-            //wResponse = new CsrfResponseWrapper(response, newNonce);
+            MutableHttpResponse mResponse = new MutableHttpResponse(response, request.getServerName(), newNonce);
+            result = mResponse;
         }
-        return wResponse;
+        return result;
     }
 	
 	private boolean hasNoValidToken(LruCache<String> nonceCache, HttpServletRequest req){

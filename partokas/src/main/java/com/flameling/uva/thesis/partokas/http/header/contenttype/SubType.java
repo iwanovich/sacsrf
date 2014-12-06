@@ -7,7 +7,7 @@ enum SubType{
 	GIF("gif"),
 	CSS("css"),
 	JAVASCRIPT("javascript"),
-	HTML("HTML"),
+	HTML("html"),
 	NULL("null");
 	
 	private String text;
@@ -19,16 +19,5 @@ enum SubType{
 	String getText(){
 		return this.text;
 	}
-	
-	static SubType get(String subNotation){
-		SubType st;
-		if(SubType.PNG.getText().equals(subNotation)){
-			st = SubType.PNG;
-		} else if(SubType.JPEG.getText().equals(subNotation)){
-			st = SubType.JPEG;
-		} else{
-			st = SubType.NULL;
-		}
-		return st;
-	}
+
 }

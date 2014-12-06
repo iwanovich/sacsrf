@@ -8,6 +8,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.servlet.ServletException;
 import javax.servlet.Filter;
 
@@ -24,6 +25,13 @@ public aspect PartokasHook {
 	pointcut filterMethod(ServletRequest request, ServletResponse response, FilterChain chain) :
 		execution(void Filter+.doFilter(ServletRequest, ServletResponse, FilterChain))
 				&& args(request, response, chain);
+	pointcut sendRedirect(String location, ServletResponse response):
+		execution(void HttpServletResponse+.sendRedirect(String))
+				&& args(location)
+				&& this(response);
+	pointcut forward(ServletRequest request, ServletResponse response):
+		execution(void RequestDispatcher+.forward(ServletRequest, ServletResponse))
+				&& args(request, response);
 	
 	before(HttpServletRequest request, HttpServletResponse response, HttpServlet servlet) :
 		serviceMethod(request, response, servlet) {
@@ -43,6 +51,14 @@ public aspect PartokasHook {
 			delegator.afterFilterMethod(response);
 		} catch (NothingToDoException e) {
 			proceed(request, response, chain);
+		} catch (ProceedException e) {
+			// Do not proceed.
 		}
+	}
+	
+	void around(String location, ServletResponse response):
+		sendRedirect(location, response){
+		delegator.beforeRedirectMethod(location, response);
+		proceed(location, response);
 	}
 }

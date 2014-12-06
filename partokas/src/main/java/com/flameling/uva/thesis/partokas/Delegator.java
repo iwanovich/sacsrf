@@ -16,7 +16,7 @@ public class Delegator {
 	
 	
 	ServletResponse beforeFilterMethod(ServletRequest request, ServletResponse response, FilterChain chain)
-			throws NothingToDoException, IOException {
+			throws ProceedException, NothingToDoException, IOException {
 		//System.out.println("Ik ben een Filter-Simon");
 		if(request instanceof HttpServletRequest && response instanceof HttpServletResponse){
 			HttpServletRequest httpRequest = (HttpServletRequest) request;
@@ -29,7 +29,9 @@ public class Delegator {
 					httpRequest.setAttribute(Constants.REGISTER_TOKEN,
 								Constants.REGISTER_TOKEN);
 				} catch (NoValidTokenException e) {
-					//httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
+					if(!httpResponse.isCommitted())
+						httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
+					throw new ProceedException();
 				}
 			} else {
 				throw new NothingToDoException("Token already added.");
@@ -43,26 +45,24 @@ public class Delegator {
 	void afterFilterMethod(ServletResponse response) throws IOException{
 		if (response instanceof MutableHttpResponse){
 			MutableHttpResponse mResponse = (MutableHttpResponse) response;
-			String source = new String(mResponse.getContent());
-			//System.out.println(source);
 			HtmlTokenInjector hti = new HtmlTokenInjector();
-			//String newSource = hti.injectToken(source, "HEY-IK-BEN-IWAN");
-			//System.out.print("\n\n-------------------------\n\n");
-			System.out.println(mResponse.getContent());
-			mResponse.setContent(mResponse.getContent());
-			System.out.println(response.getCharacterEncoding());
-			System.out.println(response.getContentType());
+			byte[] newBytes = hti.injectToken(mResponse.getContent(),
+					mResponse.getContentType(), mResponse.getTokenValue(), mResponse.getCachedServerName());
+			mResponse.setContent(newBytes);
 			mResponse.writeContent();
 		}
 	}
 	
+	ServletResponse beforeRedirectMethod(String location, ServletResponse response)
+			throws ProceedException, NothingToDoException, IOException {
+		return null;
+	}	
+	
 	private HttpServletResponse doProcess(HttpServletRequest request, HttpServletResponse response)
 			throws IOException, NoValidTokenException{
-		MutableHttpResponse mResponse = new MutableHttpResponse(response);
 		RequestProcessor rp = new RequestProcessor();
-		System.out.println(new String(mResponse.getContent()));
-		//rp.process(request, response);
-		return mResponse;
+		HttpServletResponse newResponse = rp.process(request, response);
+		return newResponse;
 	}
 
 }
