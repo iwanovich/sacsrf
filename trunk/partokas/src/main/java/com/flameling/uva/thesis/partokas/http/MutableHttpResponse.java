@@ -31,11 +31,16 @@ public final class MutableHttpResponse extends HttpServletResponseWrapper {
 	private FilterOutputStream stream = null;
 
 	private PrintWriter writer = null;
+	
+	private String cachedServerName = null;
+	
+	private String tokenValue = null;
 
-	public MutableHttpResponse(HttpServletResponse response) {
+	public MutableHttpResponse(HttpServletResponse response, String cachedServerName, String tokenValue) {
 		super(response);
-
 		reset();
+		this.cachedServerName = cachedServerName;
+		this.tokenValue = tokenValue;
 	}
 
 	public byte[] getContent() throws IOException {
@@ -102,5 +107,13 @@ public final class MutableHttpResponse extends HttpServletResponseWrapper {
 		response.setContentLength(content.length);
 		os.write(content);
 		os.close();
+	}
+
+	public String getCachedServerName() {
+		return "http://" + this.cachedServerName;
+	}
+	
+	public String getTokenValue(){
+		return this.tokenValue;
 	}
 }

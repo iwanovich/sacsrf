@@ -3,36 +3,24 @@ package com.flameling.uva.thesis.partokas.http.header.contenttype;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.lang.Validate;
-
 public enum MediaType {
 	
-	PNG("image/png"),
-	JPEG("image/jpeg"),
-	BMP("image/bmp"),
-	GIF("image/gif"),
-	CSS("text/css"),
-	JS("text/javascript", "application/javascript"),
-	HTML("text/html"),
-	NULL("null");
+	PNG(new TypeNotation(GroupType.IMAGE,SubType.PNG)),
+	JPEG(new TypeNotation(GroupType.IMAGE,SubType.JPEG)),
+	BMP(new TypeNotation(GroupType.IMAGE,SubType.BMP)),
+	GIF(new TypeNotation(GroupType.IMAGE,SubType.GIF)),
+	CSS(new TypeNotation(GroupType.TEXT,SubType.CSS)),
+	JS(new TypeNotation(GroupType.TEXT,SubType.JAVASCRIPT),
+			new TypeNotation(GroupType.APPLICATION,SubType.JAVASCRIPT)),
+	HTML(new TypeNotation(GroupType.TEXT,SubType.HTML)),
+	NULL(new TypeNotation(GroupType.NULL,SubType.NULL));
 	
 	private Set<TypeNotation> typeNotations = new HashSet<TypeNotation>();
 	
-	private MediaType(String... notations){
-		for(String notation : notations){
-			addTypeNotation(notation);
+	private MediaType(TypeNotation... notations){
+		for(TypeNotation notation : notations){
+			typeNotations.add(notation);
 		}
-	}
-	
-	private void addTypeNotation(String notation){
-		Validate.notNull(notation, "type notation can't be null");
-		notation = notation.toLowerCase();
-		notation = notation.equals("null") ? "null/null" : notation;
-		typeNotations.add(new TypeNotation(notation));
-	}
-	
-	private void addTypeNotation(GroupType group, SubType sub){
-		typeNotations.add(new TypeNotation(group, sub));
 	}
 	
 	private Set<TypeNotation> getTypeNotations(){
@@ -45,12 +33,6 @@ public enum MediaType {
 			result.add(notation.getStringNotation());
 		}
 		return result;
-	}
-	
-	public static Set<MediaType> getMediaTypes(String group){
-		Validate.notNull(group, "group can't be null");
-		GroupType gt = GroupType.get(group);
-		return getMediaTypes(gt);
 	}
 	
 	public static Set<MediaType> getMediaTypes(GroupType group){
@@ -83,9 +65,9 @@ public enum MediaType {
 		if(typeNotation == null)
 			return MediaType.NULL;
 		typeNotation = typeNotation.toLowerCase();
-		for(MediaType supportedType : MediaType.values()){
-			TypeNotation tn = new TypeNotation(typeNotation);
-			if (supportedType.getTypeNotations().contains(tn)){
+		MediaType[] supportedTypes = MediaType.values();
+		for(MediaType supportedType : supportedTypes){
+			if(supportedType.getStringNotations().contains(typeNotation)){
 				result = supportedType;
 				break;
 			}

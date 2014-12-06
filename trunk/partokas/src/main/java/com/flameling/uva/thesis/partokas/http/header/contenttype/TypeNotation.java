@@ -9,25 +9,21 @@ class TypeNotation{
 		init(group, sub);
 	}
 	
-	public TypeNotation(String notation){
-		init(notation);
-	}
-	
 	private void init(GroupType gt, SubType st){
 		this.group = gt;
 		this.sub = st;
 	}
 	
-	private void init(String notation){
-		String[] splits = notation.split(delimiter);
-		if(splits.length != 2)
-			throw new IllegalArgumentException("MediaType notation should be in the form of \"image/png\".");
-		String groupNotation = splits[0];
-		String subNotation = splits[1];
-		GroupType gt = GroupType.get(groupNotation);
-		SubType st = SubType.get(subNotation);
-		init(gt, st);
-	}
+//	private void init(String notation){
+//		String[] splits = notation.split(delimiter);
+//		if(splits.length != 2)
+//			throw new IllegalArgumentException("MediaType notation should be in the form of \"image/png\".");
+//		String groupNotation = splits[0];
+//		String subNotation = splits[1];
+//		GroupType gt = GroupType.get(groupNotation);
+//		SubType st = SubType.get(subNotation);
+//		init(gt, st);
+//	}
 	
 	String getStringNotation(){
 		String result = null;
